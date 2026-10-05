@@ -1,0 +1,2078 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Hardware Barcode 驗證管理系統</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #7c3aed;
+      --accent-hover: #6d28d9;
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --success: #10b981;
+      --success-bg: #d1fae5;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --danger-bg: #fee2e2;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: white;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .header-title h1 {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .project-selector-wrapper {
+      display: flex;
+      background: #334155;
+      padding: 3px;
+      border-radius: 8px;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .project-btn {
+      padding: 6px 14px;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .project-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* 超顯眼的置頂批次比對中心按鈕 */
+    .compare-top-badge-btn {
+      background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 7px 16px;
+      border-radius: 20px;
+      border: 1px solid #c084fc;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.45);
+      transition: all 0.2s ease;
+    }
+
+    .compare-top-badge-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 16px rgba(168, 85, 247, 0.65);
+    }
+
+    .compare-top-badge-btn.active {
+      background: #f59e0b;
+      border-color: #fde047;
+      color: #000;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary { background-color: var(--primary); color: white; }
+    .btn-primary:hover { background-color: var(--primary-hover); }
+    .btn-secondary { background-color: #475569; color: white; }
+    .btn-secondary:hover { background-color: #334155; }
+    .btn-outline { background-color: transparent; border: 1px solid #cbd5e1; color: #334155; }
+    .btn-outline:hover { background-color: #f1f5f9; }
+    .btn-xs { padding: 3px 8px; font-size: 11px; border-radius: 4px; }
+
+    .tabs-bar {
+      background: #ffffff;
+      border-bottom: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      overflow-x: auto;
+      gap: 6px;
+      position: sticky;
+      top: 55px;
+      z-index: 90;
+    }
+
+    .tab-btn {
+      padding: 11px 16px;
+      border: none;
+      background: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--primary);
+      background-color: #f8fafc;
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background-color: #eff6ff;
+    }
+
+    .tab-owner-tag {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #e2e8f0;
+      color: #475569;
+    }
+
+    main {
+      flex: 1;
+      padding: 16px 24px;
+      max-width: 1650px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .machine-info-card {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .machine-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .meta-label {
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .meta-input {
+      padding: 4px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .meta-input:focus {
+      border-color: var(--primary);
+    }
+
+    .category-group {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .cat-header {
+      padding: 8px 14px;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .cat-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cat-cpu   { background: #e0f2fe; color: #0369a1; border-left: 6px solid #0284c7; }
+    .cat-gpu   { background: #ede9fe; color: #5b21b6; border-left: 6px solid #7c3aed; }
+    .cat-hpm   { background: #fef3c7; color: #92400e; border-left: 6px solid #d97706; }
+    .cat-riser { background: #fce7f3; color: #9d174d; border-left: 6px solid #ec4899; }
+    .cat-m2    { background: #ecfdf5; color: #047857; border-left: 6px solid #10b981; }
+    .cat-e1s   { background: #ccfbf1; color: #0f766e; border-left: 6px solid #14b8a6; }
+    .cat-scm   { background: #f3e8ff; color: #6b21a8; border-left: 6px solid #9333ea; }
+    .cat-mem   { background: #ffe4e6; color: #be123c; border-left: 6px solid #f43f5e; }
+    .cat-pdb   { background: #ffedd5; color: #9a3412; border-left: 6px solid #ea580c; }
+    .cat-cable { background: #f1f5f9; color: #334155; border-left: 6px solid #64748b; }
+    .cat-fan   { background: #f0fdf4; color: #166534; border-left: 6px solid #22c55e; }
+    .cat-mech  { background: #faf5ff; color: #6b21a8; border-left: 6px solid #a855f7; }
+
+    .barcode-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .barcode-table th {
+      background: #f8fafc;
+      text-align: left;
+      padding: 7px 12px;
+      color: #475569;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    .barcode-table td {
+      padding: 6px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+
+    .barcode-table tr:hover {
+      background-color: #f8fafc;
+    }
+
+    .col-idx { width: 35px; color: var(--text-muted); text-align: center; }
+    .col-name { width: 440px; font-weight: 600; color: #1e293b; }
+    .col-usage { width: 85px; text-align: center; }
+    .col-actions { width: 50px; text-align: center; }
+
+    .th-btn-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      float: right;
+    }
+    .btn-header-copy {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #334155;
+      transition: all 0.15s ease;
+    }
+    .btn-header-copy:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+      border-color: #94a3b8;
+    }
+
+    .usage-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #e2e8f0;
+      color: #475569;
+    }
+
+    .usage-badge.zero { background: #f1f5f9; color: #94a3b8; }
+    .usage-badge.active-use { background: #dbeafe; color: #1d4ed8; }
+
+    .grid-input {
+      width: 100%;
+      padding: 6px 10px;
+      font-family: "JetBrains Mono", Consolas, Monaco, "Courier New", monospace;
+      font-size: 13px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      outline: none;
+      transition: all 0.15s ease;
+      background: #ffffff;
+    }
+
+    .grid-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+      background: #eff6ff;
+    }
+
+    .grid-input.has-val {
+      font-weight: 500;
+      color: #0f172a;
+    }
+
+    .item-name-input {
+      border: 1px solid transparent;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #1e293b;
+      width: 100%;
+      background: transparent;
+    }
+    .item-name-input:hover { border-color: #cbd5e1; background: #fff; }
+    .item-name-input:focus { border-color: var(--primary); background: #fff; outline: none; }
+
+    .dimm-grid-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .dimm-cell {
+      display: flex;
+      align-items: center;
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      border-radius: 4px;
+      padding: 4px 8px;
+      gap: 6px;
+    }
+
+    .dimm-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #be123c;
+      width: 65px;
+      flex-shrink: 0;
+    }
+
+    .dimm-cell input {
+      flex: 1;
+      padding: 5px 8px;
+      font-family: monospace;
+      font-size: 12px;
+      border: 1px solid #fda4af;
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .compare-container {
+      display: grid;
+      grid-template-columns: 440px 1fr;
+      gap: 20px;
+    }
+
+    .compare-panel {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .compare-select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      outline: none;
+    }
+
+    .compare-textarea {
+      width: 100%;
+      height: 250px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px;
+      font-family: monospace;
+      font-size: 13px;
+      resize: vertical;
+      outline: none;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .compare-stats-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 13px;
+    }
+
+    .progress-bar-container {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--success);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .compare-result-list {
+      max-height: 600px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+
+    .comp-item {
+      padding: 7px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    .comp-item.matched {
+      background-color: #ecfdf5;
+      color: #065f46;
+      border-left: 4px solid var(--success);
+    }
+
+    .comp-item.missing {
+      background-color: #fef2f2;
+      color: #991b1b;
+      border-left: 4px solid var(--danger);
+    }
+
+    .comp-item.unassigned {
+      background-color: #fffbeb;
+      color: #92400e;
+      border-left: 4px solid var(--warning);
+    }
+
+    .badge-matched {
+      background: #10b981;
+      color: white;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .badge-missing {
+      background: #ef4444;
+      color: white;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .badge-unassigned {
+      background: #f59e0b;
+      color: white;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .del-btn {
+      color: #94a3b8;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: all 0.15s ease;
+    }
+    .del-btn:hover { color: var(--danger); background: var(--danger-bg); }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-size: 13px;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <div class="header-title">
+        <h1>Server Hardware Barcode 驗證管理系統</h1>
+      </div>
+      <div class="project-selector-wrapper" id="projectListWrapper">
+      </div>
+      <button class="btn btn-outline" style="color:white; border-color:#64748b; padding:4px 8px; font-size:11px;" onclick="promptNewProject()">➕ 新增專案</button>
+      <button class="btn btn-outline" style="color:white; border-color:#64748b; padding:4px 8px; font-size:11px;" onclick="promptEditProject()">✏️ 重新命名</button>
+      <button class="btn btn-outline" style="color:#fca5a5; border-color:#7f1d1d; padding:4px 8px; font-size:11px;" onclick="promptDeleteProject()">🗑 刪除專案</button>
+
+      <button class="compare-top-badge-btn" id="btnTopCompareBadge" onclick="toggleCompareCenter()">
+        ⚡ 批次比對中心 (即時驗證)
+      </button>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" onclick="addNewMachine()">➕ 新增機台分頁</button>
+      <button class="btn btn-secondary" onclick="exportFullJSON()">💾 備份 JSON</button>
+      <button class="btn btn-outline" style="color:white; border-color:#64748b" onclick="importFullJSON()">📥 匯入復原</button>
+    </div>
+  </header>
+
+  <div class="tabs-bar" id="tabsBar">
+  </div>
+
+  <main>
+    <div id="machineViewsContainer"></div>
+
+    <div id="tab-compare" class="tab-content">
+      <div class="compare-container">
+        
+        <div class="compare-panel">
+          <div class="panel-title" style="color: var(--accent);">
+            <span>🎯 批次比對中心</span>
+          </div>
+          
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; display: block;">目標比對機台 (Slot ID / Owner)：</label>
+          <select id="compareTargetSelect" class="compare-select" onchange="runComparison()">
+          </select>
+
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; display: block;">
+            貼上已掃描之物料 Barcode 清單 (支援一次貼上多行 Excel 條碼)：
+          </label>
+          <textarea id="scannedBarcodeInput" class="compare-textarea" placeholder="在此處貼上從 Excel 複製的多個條碼，或直接使用掃描槍連續刷入條碼..." oninput="runComparison()"></textarea>
+
+          <div class="compare-stats-card">
+            <div class="stat-row">
+              <span>🎯 機台應有條碼數：</span>
+              <strong id="statTotalExpected">0</strong>
+            </div>
+            <div class="stat-row">
+              <span>✅ 吻合匹配條碼數：</span>
+              <strong id="statTotalMatched" style="color: var(--success);">0</strong>
+            </div>
+            <div class="stat-row">
+              <span>⏳ 尚缺條碼項目：</span>
+              <strong id="statTotalMissing" style="color: var(--danger);">0</strong>
+            </div>
+            <div class="stat-row">
+              <span>⚠️ 異常多出 / 不吻合條碼：</span>
+              <strong id="statTotalExtra" style="color: var(--warning);">0</strong>
+            </div>
+            <div class="progress-bar-container">
+              <div id="progressBarFill" class="progress-bar-fill"></div>
+            </div>
+            <div style="text-align: right; font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="statPercent">0% 完成</div>
+          </div>
+
+          <button class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="copyMissingItems()">
+            📋 複製尚缺物料清單至剪貼簿
+          </button>
+        </div>
+
+        <div class="compare-panel">
+          <div class="panel-title" style="justify-content: space-between;">
+            <span>📋 比對即時狀態反饋</span>
+            <div style="font-size: 12px; font-weight: normal; display: flex; gap: 8px;">
+              <span style="color:#065f46">● 吻合</span>
+              <span style="color:#991b1b">● 缺失</span>
+              <span style="color:#92400e">● 未知</span>
+            </div>
+          </div>
+          <div class="compare-result-list" id="compareResultList">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast">訊息提示</div>
+<script>
+var C43AB_CATEGORIES = [
+      {
+        id: "cpu", name: "CPU", cssClass: "cat-cpu",
+        items: [
+          { key: "CPU#0", label: "CPU#0", usage: 1 }, { key: "CPU#1", label: "CPU#1", usage: 1 },
+          { key: "CPU#2", label: "CPU#2", usage: 1 }, { key: "CPU#3", label: "CPU#3", usage: 1 }
+        ]
+      },
+      { id: "gp_card", name: "GP Card", cssClass: "cat-gpu", items: [{ key: "GP Card", label: "GP Card", usage: 1 }] },
+      {
+        id: "hpm", name: "HPM 主機板", cssClass: "cat-hpm",
+        items: [
+          { key: "HM11 C4XAB MB SKU A PV, rework 8 resistance #1", label: "HM11 C4XAB MB SKU A PV, rework 8 resistance #1", usage: 1 },
+          { key: "HM11 C4XAB MB SKU A PV, rework 8 resistance #2", label: "HM11 C4XAB MB SKU A PV, rework 8 resistance #2", usage: 1 }
+        ]
+      },
+      {
+        id: "m2_ssd", name: "M.2 SSD", cssClass: "cat-m2",
+        items: [
+          { key: "M.2#1", label: "M.2#1", usage: 1 }, { key: "M.2#2", label: "M.2#2", usage: 1 },
+          { key: "M.2#3", label: "M.2#3", usage: 1 }, { key: "M.2#4", label: "M.2#4", usage: 1 }
+        ]
+      },
+      {
+        id: "e1s_ssd", name: "E1.S SSD", cssClass: "cat-e1s",
+        items: [
+          { key: "E1.S#1", label: "E1.S#1", usage: 1 }, { key: "E1.S#2", label: "E1.S#2", usage: 1 },
+          { key: "E1.S#3", label: "E1.S#3", usage: 1 }, { key: "E1.S#4", label: "E1.S#4", usage: 1 },
+          { key: "E1.S#5", label: "E1.S#5", usage: 1 }, { key: "E1.S#6", label: "E1.S#6", usage: 1 },
+          { key: "E1.S#7", label: "E1.S#7", usage: 1 }, { key: "E1.S#8", label: "E1.S#8", usage: 1 }
+        ]
+      },
+      {
+        id: "dc_scm", name: "DC-SCM", cssClass: "cat-scm",
+        items: [{ key: "DC-SCM#1", label: "DC-SCM#1", usage: 1 }, { key: "DC-SCM#2", label: "DC-SCM#2", usage: 1 }]
+      },
+      {
+        id: "memory", name: "Memory (DIMM#1 ~ DIMM#64 共 64 條)", cssClass: "cat-mem", isDimmGrid: true,
+        items: Array.from({ length: 64 }, function(_, i) { return { key: "DIMM#" + (i + 1), label: "DIMM#" + (i + 1), usage: 1 }; })
+      },
+      {
+        id: "pdb", name: "PDB 配電板", cssClass: "cat-pdb",
+        items: [{ key: "HM11 C4XAB H-PDBv2 (with I3C Hub Solution),M1319108-005", label: "HM11 C4XAB H-PDBv2 (with I3C Hub Solution),M1319108-005", usage: 1 }]
+      },
+      {
+        id: "sled_cable", name: "SLED Cable 內部線材", cssClass: "cat-cable",
+        items: [
+          { key: "4S/8S Sled 12V Power Cable, M1336745-002", label: "4S/8S Sled 12V Power Cable, M1336745-002", usage: 2 },
+          { key: "Front E1.S Intrusion Switch Cable,RWHHW-Y378, M1324984-002", label: "Front E1.S Intrusion Switch Cable,RWHHW-Y378, M1324984-002", usage: 2 },
+          { key: "4S/8S Sled Rear Intrusion Switch Cable,RWHHW-Y061, M1324985-002", label: "4S/8S Sled Rear Intrusion Switch Cable,RWHHW-Y061, M1324985-002", usage: 2 },
+          { key: "4S/8S Sled CUP0 UPI2 Cable, M1336753-002", label: "4S/8S Sled CUP0 UPI2 Cable, M1336753-002", usage: 2 },
+          { key: "4S/8S Sled CUP0 UPI1 Cable, M1336752-002", label: "4S/8S Sled CUP0 UPI1 Cable, M1336752-002", usage: 2 },
+          { key: "4S/8S Sled CUP1 UPI0 Cable, M1336754-002", label: "4S/8S Sled CUP1 UPI0 Cable, M1336754-002", usage: 2 },
+          { key: "4S/8S Sled CUP1 UPI2 Cable, M1336755-002", label: "4S/8S Sled CUP1 UPI2 Cable, M1336755-002", usage: 2 },
+          { key: "4S/8S Sled#1 Sideband Cable,M1336748-002", label: "4S/8S Sled#1 Sideband Cable,M1336748-002", usage: 2 },
+          { key: "4S/8S Sled#2 Sideband Cable, M1336749-002", label: "4S/8S Sled#2 Sideband Cable, M1336749-002", usage: 2 }
+        ]
+      },
+      {
+        id: "pdb_cable", name: "PDB Cable 配電線材", cssClass: "cat-cable",
+        items: [
+          { key: "2S/4S Busbar 48V Power Cable PV,COO Mexico,M1340388-001", label: "2S/4S Busbar 48V Power Cable PV,COO Mexico,M1340388-001", usage: 1 },
+          { key: "4S/8S Rear Sled#2 12V Power Cable,M1336746-002 _#2", label: "4S/8S Rear Sled#2 12V Power Cable,M1336746-002 _#2", usage: 1 },
+          { key: "4S/8S Rear Sled#1 12V Power Cable, M1336747-002_#1", label: "4S/8S Rear Sled#1 12V Power Cable, M1336747-002_#1", usage: 1 },
+          { key: "Rear Cover Intrusion Switch Cable, M1336760-002", label: "Rear Cover Intrusion Switch Cable, M1336760-002", usage: 1 },
+          { key: "4S/8S Rear Sled#1 Sideband Cable, M1336750-002", label: "4S/8S Rear Sled#1 Sideband Cable, M1336750-002", usage: 1 },
+          { key: "4S/8S Rear Sled#2 Sideband Cable,M1336751-002", label: "4S/8S Rear Sled#2 Sideband Cable,M1336751-002", usage: 1 },
+          { key: "4S Rear CPU0 UPI1 Cable, M1336756-002", label: "4S Rear CPU0 UPI1 Cable, M1336756-002", usage: 1 },
+          { key: "4S Rear CPU0 UPI0 Cable, M1336757-002", label: "4S Rear CPU0 UPI0 Cable, M1336757-002", usage: 1 },
+          { key: "4S Rear CPU0/1 UPI2 Cable, M1336758-002", label: "4S Rear CPU0/1 UPI2 Cable, M1336758-002", usage: 1 },
+          { key: "4S Rear CPU1/0 UPI2 Cable, M1336759-002", label: "4S Rear CPU1/0 UPI2 Cable, M1336759-002", usage: 1 },
+          { key: "4S FAN#6 Extension Cable, M1336767-002", label: "4S FAN#6 Extension Cable, M1336767-002", usage: 1 },
+          { key: "4S FAN#5 Extension Cable, M1336766-002", label: "4S FAN#5 Extension Cable, M1336766-002", usage: 1 },
+          { key: "4S FAN#4 Extension Cable, M1336765-002", label: "4S FAN#4 Extension Cable, M1336765-002", usage: 1 },
+          { key: "4S FAN#3 Extension Cable, M1336764-002", label: "4S FAN#3 Extension Cable, M1336764-002", usage: 1 },
+          { key: "4S FAN#2 Extension Cable, M1336763-002", label: "4S FAN#2 Extension Cable, M1336763-002", usage: 1 },
+          { key: "4S FAN#1 Extension Cable, M1336762-002", label: "4S FAN#1 Extension Cable, M1336762-002", usage: 1 }
+        ]
+      },
+      {
+        id: "fan_module", name: "FAN 風扇模組", cssClass: "cat-fan",
+        items: [
+          { key: "C43AB 3OU Fan Row Cage_DV2 T1 Sample, M1336735-002", label: "C43AB 3OU Fan Row Cage_DV2 T1 Sample, M1336735-002", usage: 6 },
+          { key: "4S Fan Module Cable, M1336761-002", label: "4S Fan Module Cable, M1336761-002", usage: 6 },
+          { key: "C43AB/C46AB_6056MM FAN_AVC_DV, M1336743-002", label: "C43AB/C46AB_6056MM FAN_AVC_DV, M1336743-002", usage: 12 }
+        ]
+      },
+      {
+        id: "mechanics", name: "滑軌與機構 (Chassis & Rails)", cssClass: "cat-mech",
+        items: [
+          { key: "滑軌外滑軌_C43AB/C46AB Ourter Chassis Sliding Rail Set_DVT", label: "滑軌外滑軌_C43AB/C46AB Ourter Chassis Sliding Rail Set_DVT", usage: 2 },
+          { key: "內滑軌_C46AB Sled Rail Set-Rework", label: "內滑軌_C46AB Sled Rail Set-Rework", usage: 2 },
+          { key: "Chassis_C43AB 3OU chassis_DVT", label: "Chassis_C43AB 3OU chassis_DVT", usage: 1 }
+        ]
+      }
+    ];
+
+    // ==========================================
+    // C41AB 預設物料清單 (全新加入)
+    // ==========================================
+    
+
+
+var C41AB_CATEGORIES = [
+      {
+        id: "dc_scm_c41ab", name: "DC-SCM 管理模組", cssClass: "cat-scm",
+        items: [
+          { key: "DC-SCM", label: "DC-SCM", usage: 1 }
+        ]
+      },
+      {
+        id: "cpu_c41ab", name: "CPU 處理器", cssClass: "cat-cpu",
+        items: [
+          { key: "CPU#0", label: "CPU#0", usage: 1 },
+          { key: "CPU#1", label: "CPU#1", usage: 1 }
+        ]
+      },
+      {
+        id: "m2_c41ab", name: "M.2 SSD 固態硬碟", cssClass: "cat-m2",
+        items: [
+          { key: "M.2#1", label: "M.2#1", usage: 1 },
+          { key: "M.2#2", label: "M.2#2", usage: 1 }
+        ]
+      },
+      {
+        id: "e1s_c41ab", name: "E1.S SSD 固態硬碟", cssClass: "cat-e1s",
+        items: [
+          { key: "E1.S#1", label: "E1.S#1", usage: 1 },
+          { key: "E1.S#2", label: "E1.S#2", usage: 1 },
+          { key: "E1.S#3", label: "E1.S#3", usage: 1 },
+          { key: "E1.S#4", label: "E1.S#4", usage: 1 }
+        ]
+      },
+      {
+        id: "memory_c41ab", name: "Memory (DIMM#1 ~ DIMM#64 共 64 條)", cssClass: "cat-mem", isDimmGrid: true,
+        items: Array.from({ length: 64 }, function(_, i) { return { key: "DIMM#" + (i + 1), label: "DIMM#" + (i + 1), usage: 1 }; })
+      }
+    ];
+
+    // ==========================================
+    // C41AC 預設物料清單
+    // ==========================================
+    
+
+
+var C41AC_CATEGORIES = [
+      {
+        id: "cpu_socket", name: "CPU 處理器與散熱機構 (CPU & Heatsink)", cssClass: "cat-cpu",
+        items: [
+          { key: "QS CPU, INTEL(R) XEON(R) 6782P-C GRANITE RAPIDS-SP XCC 336MB 80c 350W 2.2G Q63W, paid sample, QS for M1 qualification and shipment only.", label: "QS CPU Xeon 6782P-C GNR-SP XCC 336MB 80c 350W 2.2G Q63W", usage: 2 },
+          { key: "LGA4710-2 Carrier -E2A (w/o shim, SP XCC)", label: "LGA4710-2 Carrier -E2A (w/o shim, SP XCC)", usage: 2 },
+          { key: "C41/C43/C46AB_CPU HS_AVC_PV", label: "C41/C43/C46AB_CPU HS_AVC_PV", usage: 2 },
+          { key: "C41/C43/C46AB_CPU HS_BOYD_PV", label: "C41/C43/C46AB_CPU HS_BOYD_PV", usage: 0 }
+        ]
+      },
+      {
+        id: "mb_power", name: "主機板、管理模組與電源 (MB, DC-SCM & PDB)", cssClass: "cat-hpm",
+        items: [
+          { key: "HM11 C41AC HPM /MB - PV LCFC", label: "HM11 C41AC HPM /MB - PV LCFC", usage: 1 },
+          { key: "HM11 C41AB HPM/MB - PV", label: "HM11 C41AB HPM/MB - PV", usage: 0 },
+          { key: "PV PCBA+MECH,DC-SCM,M1120,MAIN SOURCE, Add Mux WITH MINI DP AND USB,ENG KIT (Not For Production)", label: "PV PCBA+MECH,DC-SCM,M1120 (With Mini DP & USB)", usage: 1 },
+          { key: "HM11 C41AC  H-PDB - PV", label: "HM11 C41AC H-PDB - PV", usage: 1 }
+        ]
+      },
+      {
+        id: "riser_cxl", name: "擴充卡與 CXL 擴展板 (Riser & CXL Board)", cssClass: "cat-riser",
+        items: [
+          { key: "Castlie Peak_M1272554-001 with PPK", label: "Castlie Peak_M1272554-001 with PPK", usage: 1 },
+          { key: "HM11 C41AC Riser Card Castle Peak - PV", label: "HM11 C41AC Riser Card Castle Peak - PV", usage: 1 },
+          { key: "HM11 C41AC Riser Card Castle Peak - PV  (BOM B)", label: "HM11 C41AC Riser Card Castle Peak - PV (BOM B)", usage: 1 },
+          { key: "HM11 C41AC DDR4 CXL Board - DV", label: "HM11 C41AC DDR4 CXL Board - DV", usage: 4 },
+          { key: "HM11 C41AC DDR4 CXL Board - DV (BOM B)", label: "HM11 C41AC DDR4 CXL Board - DV (BOM B)", usage: 4 },
+          { key: "C46AB 1.5OU Riser Bracket_PV", label: "C46AB 1.5OU Riser Bracket_PV", usage: 1 }
+        ]
+      },
+      {
+        id: "memory_modules", name: "記憶體模組 (RDIMM & CXL DDR4)", cssClass: "cat-mem",
+        items: [
+          { key: "Samsung 64G MDRR644QDBC2 2RX4 PC5-6400 16Gb Q-Die RDIMM CSP A3", label: "Samsung 64G DDR5-6400 RDIMM Q-Die", usage: 32 },
+          { key: "Hynix 64G HMCG94CHBRA 2Rx4 PC5-6400 C-die 16Gbit RDIMM CSP A3", label: "Hynix 64G DDR5-6400 RDIMM C-die", usage: 32 },
+          { key: "Micron 64G MTC40F2046S1RC64BH1 2RX4 PC5-6400 16Gb Y62E CSP", label: "Micron 64G DDR5-6400 RDIMM Y62E", usage: 0 },
+          { key: "Samsung DDR4 2400 32GB M393A4K40CB1-CRC", label: "Samsung DDR4 2400 32GB (For CXL)", usage: 64 },
+          { key: "SK Hynix DDR4 2400 32GB HMA84GR7AFR4N-UH", label: "SK Hynix DDR4 2400 32GB (For CXL)", usage: 64 }
+        ]
+      },
+      {
+        id: "storage_ssd", name: "固態硬碟 (M.2 & E1.S SSD)", cssClass: "cat-m2",
+        items: [
+          { key: "Samsung PM9D3a M.2 22x80 MZVL6960HFLB-00AMV", label: "Samsung PM9D3a M.2 22x80 960GB", usage: 1 },
+          { key: "Hynix PEB210 M.2 22x80 HFS960GEP8X183N", label: "Hynix PEB210 M.2 22x80 960GB", usage: 1 },
+          { key: "PMPEB110  HFS3T8GFMWX183N 4TB", label: "Hynix PMPEB110 E1.S 4TB", usage: 4 },
+          { key: "Samsung PM1753 MZCL93T8HFLB-00AMZ 4TB", label: "Samsung PM1753 E1.S 4TB", usage: 4 },
+          { key: "E1S_DUMMY_BADY_CP01-SIT (MSFT AVAP)", label: "E1S_DUMMY_BADY_CP01-SIT (MSFT AVAP)", usage: 0 },
+          { key: "HM11 MSFT Gen11 E1.S Ejector", label: "HM11 MSFT Gen11 E1.S Ejector", usage: 4 }
+        ]
+      },
+      {
+        id: "cxl_cables", name: "CXL 訊號線材 (MXIO / MCIO Cables)", cssClass: "cat-cable",
+        items: [
+          { key: "CPU0 PE3 To CXL1 Port0 MXIO Cable", label: "CPU0 PE3 To CXL1 Port0 MXIO Cable", usage: 1 },
+          { key: "CPU0 PE3 To CXL1 Port1 MCIO Cable", label: "CPU0 PE3 To CXL1 Port1 MCIO Cable", usage: 1 },
+          { key: "CPU1 PE2 To CXL2 Port0 MXIO Cable", label: "CPU1 PE2 To CXL2 Port0 MXIO Cable", usage: 1 },
+          { key: "CPU1 PE2 To CXL2 Port1 MCIO Cable", label: "CPU1 PE2 To CXL2 Port1 MCIO Cable", usage: 1 },
+          { key: "CPU0 PE4 To CXL3 Port0 MXIO Cable", label: "CPU0 PE4 To CXL3 Port0 MXIO Cable", usage: 1 },
+          { key: "CPU0 PE4 To CXL3 Port1 MCIO Cable", label: "CPU0 PE4 To CXL3 Port1 MCIO Cable", usage: 1 },
+          { key: "CPU1 PE5 To CXL4 Port0 MXIO Cable", label: "CPU1 PE5 To CXL4 Port0 MXIO Cable", usage: 1 },
+          { key: "CPU1 PE5 To CXL4 Port1 MCIO Cable", label: "CPU1 PE5 To CXL4 Port1 MCIO Cable", usage: 1 }
+        ]
+      },
+      {
+        id: "system_cables", name: "系統、電源與風扇線材 (UPI, Power & Sideband)", cssClass: "cat-cable",
+        items: [
+          { key: "2S UPI0/1 Cable", label: "2S UPI0/1 Cable", usage: 1 },
+          { key: "2S UPI2 Cable", label: "2S UPI2 Cable", usage: 1 },
+          { key: "2S UPI3 Cable", label: "2S UPI3 Cable", usage: 1 },
+          { key: "Front E1.S Intrusion Switch Cable", label: "Front E1.S Intrusion Switch Cable", usage: 1 },
+          { key: "4S/8S Sled Rear Intrusion Switch Cable", label: "4S/8S Sled Rear Intrusion Switch Cable", usage: 1 },
+          { key: "2S/4S Busbar 48V Power Cable", label: "2S/4S Busbar 48V Power Cable", usage: 1 },
+          { key: "2S Sideband Cable", label: "2S Sideband Cable", usage: 1 },
+          { key: "2S PDB 12V Power Cable", label: "2S PDB 12V Power Cable", usage: 1 },
+          { key: "2S FAN1 Cable", label: "2S FAN1 Cable", usage: 1 },
+          { key: "2S FAN2 Cable", label: "2S FAN2 Cable", usage: 1 },
+          { key: "2S FAN3 Cable", label: "2S FAN3 Cable", usage: 1 },
+          { key: "2S FAN4 Cable", label: "2S FAN4 Cable", usage: 1 },
+          { key: "2S FAN5 Cable", label: "2S FAN5 Cable", usage: 1 },
+          { key: "2S FAN6 Cable", label: "2S FAN6 Cable", usage: 1 }
+        ]
+      },
+      {
+        id: "fans_chassis", name: "風扇模組、機箱與包裝 (Fan, Chassis & Packaging)", cssClass: "cat-fan",
+        items: [
+          { key: "C41AB_6056MM FAN_AVC_PV", label: "C41AB_6056MM FAN_AVC_PV", usage: 6 },
+          { key: "C41AB_6056MM FAN_DELTA_PV", label: "C41AB_6056MM FAN_DELTA_PV", usage: 0 },
+          { key: "C41AC Leo2 Chassis", label: "C41AC Leo2 Chassis", usage: 1 },
+          { key: "C41AC Air Duct_DV", label: "C41AC Air Duct_DV", usage: 1 },
+          { key: "C41AC_REAR-AIR-DUCT", label: "C41AC_REAR-AIR-DUCT", usage: 1 },
+          { key: "C2184_SCREW_OBS_M1131291-001", label: "C2184_SCREW_OBS_M1131291-001", usage: 4 },
+          { key: "Rail kit - C41AB", label: "Rail kit - C41AB", usage: 1 },
+          { key: "Cage NUT", label: "Cage NUT", usage: 2 },
+          { key: "C41AB System PKG - PV", label: "C41AB System PKG - PV", usage: 1 }
+        ]
+      }
+    ];
+
+    
+
+
+
+var projectCategoriesMap = {
+  C43AB: C43AB_CATEGORIES,
+  C41AB: C41AB_CATEGORIES,
+  C41AC: C41AC_CATEGORIES
+};
+
+var initialC41ABMachines = [
+      {
+        id: "m_c41ab_23", slotId: "23", owner: "Caffrey", note: "",
+        barcodes: {
+          "CPU#0": "800000594770",
+          "CPU#1": "800000594771",
+          "M.2#1": "800000594798",
+          "M.2#2": "800000594799",
+          "E1.S#1": "800000576215",
+          "E1.S#2": "800000576216",
+          "E1.S#3": "800000576217",
+          "E1.S#4": "800000576218",
+          "DIMM#1": "800000526226",
+          "DIMM#2": "800000526227",
+          "DIMM#3": "800000526228",
+          "DIMM#4": "800000526229",
+          "DIMM#5": "800000526230",
+          "DIMM#6": "800000526231",
+          "DIMM#7": "800000526232",
+          "DIMM#8": "800000526233",
+          "DIMM#9": "800000526234",
+          "DIMM#10": "800000526235",
+          "DIMM#11": "800000526236",
+          "DIMM#12": "800000526237",
+          "DIMM#13": "800000526238",
+          "DIMM#14": "800000526239",
+          "DIMM#15": "800000526240",
+          "DIMM#16": "800000526241",
+          "DIMM#17": "800000526242",
+          "DIMM#18": "800000526243",
+          "DIMM#19": "800000526244",
+          "DIMM#20": "800000526245",
+          "DIMM#21": "800000526246",
+          "DIMM#22": "800000526247",
+          "DIMM#23": "800000526248",
+          "DIMM#24": "800000526249",
+          "DIMM#25": "800000526250",
+          "DIMM#26": "800000526251",
+          "DIMM#27": "800000526252",
+          "DIMM#28": "800000526253",
+          "DIMM#29": "800000526254",
+          "DIMM#30": "800000526255",
+          "DIMM#31": "800000526256",
+          "DIMM#32": "800000526257",
+          "DIMM#33": "800000526260",
+          "DIMM#34": "800000526267",
+          "DIMM#35": "800000526268",
+          "DIMM#36": "800000526269",
+          "DIMM#37": "800000526270",
+          "DIMM#38": "800000526271",
+          "DIMM#39": "800000526272",
+          "DIMM#40": "800000526273",
+          "DIMM#41": "800000526274",
+          "DIMM#42": "800000526275",
+          "DIMM#43": "800000526276",
+          "DIMM#44": "800000526277",
+          "DIMM#45": "800000526278",
+          "DIMM#46": "800000526279",
+          "DIMM#47": "800000526280",
+          "DIMM#48": "800000526281",
+          "DIMM#49": "800000526282",
+          "DIMM#50": "800000526283",
+          "DIMM#51": "800000526284",
+          "DIMM#52": "800000526285",
+          "DIMM#53": "800000526286",
+          "DIMM#54": "800000526287",
+          "DIMM#55": "800000526288",
+          "DIMM#56": "800000526289",
+          "DIMM#57": "800000539061",
+          "DIMM#58": "800000539062",
+          "DIMM#59": "800000539063",
+          "DIMM#60": "800000539064",
+          "DIMM#61": "800000539065",
+          "DIMM#62": "800000539066",
+          "DIMM#63": "800000539067",
+          "DIMM#64": "800000539068"
+}
+      },
+      {
+        id: "m_c41ab_24", slotId: "24", owner: "Caffrey", note: "",
+        barcodes: {
+          "DIMM#1": "800000525766",
+          "DIMM#2": "800000482239",
+          "DIMM#3": "800000525767",
+          "DIMM#4": "800000525768",
+          "DIMM#5": "800000525769",
+          "DIMM#6": "800000525770",
+          "DIMM#7": "800000525899",
+          "DIMM#8": "800000525900",
+          "DIMM#9": "800000525903",
+          "DIMM#10": "800000525904",
+          "DIMM#11": "800000525905",
+          "DIMM#12": "800000480485",
+          "DIMM#13": "800000525906",
+          "DIMM#14": "800000525907",
+          "DIMM#15": "800000525908",
+          "DIMM#16": "800000482139",
+          "DIMM#17": "800000525909",
+          "DIMM#18": "800000525910",
+          "DIMM#19": "800000525911",
+          "DIMM#20": "800000525913",
+          "DIMM#21": "800000525916",
+          "DIMM#22": "800000525918",
+          "DIMM#23": "800000525972",
+          "DIMM#24": "800000484800",
+          "DIMM#25": "800000482156",
+          "DIMM#26": "800000525973",
+          "DIMM#27": "800000482171",
+          "DIMM#28": "800000482179",
+          "DIMM#29": "800000525975",
+          "DIMM#30": "800000525978",
+          "DIMM#31": "800000525980",
+          "DIMM#32": "800000525982",
+          "DIMM#33": "800000482165",
+          "DIMM#34": "800000525983",
+          "DIMM#35": "800000525984",
+          "DIMM#36": "800000525985",
+          "DIMM#37": "800000525986",
+          "DIMM#38": "800000525988",
+          "DIMM#39": "800000525989",
+          "DIMM#40": "800000525990",
+          "DIMM#41": "800000525991",
+          "DIMM#42": "800000525992",
+          "DIMM#43": "800000525993",
+          "DIMM#44": "800000525995",
+          "DIMM#45": "800000525996",
+          "DIMM#46": "800000525997",
+          "DIMM#47": "800000526000",
+          "DIMM#48": "800000526003",
+          "DIMM#49": "800000484801",
+          "DIMM#50": "800000526004",
+          "DIMM#51": "800000526005",
+          "DIMM#52": "800000526006",
+          "DIMM#53": "800000526007",
+          "DIMM#54": "800000526008",
+          "DIMM#55": "800000526009",
+          "DIMM#56": "800000526010",
+          "DIMM#57": "800000526011",
+          "DIMM#58": "800000526012",
+          "DIMM#59": "800000526013",
+          "DIMM#60": "800000526014",
+          "DIMM#61": "800000526015",
+          "DIMM#62": "800000526016",
+          "DIMM#63": "800000482175",
+          "DIMM#64": "800000539614"
+}
+      },
+      { id: "m_c41ab_26", slotId: "26", owner: "", note: "", barcodes: {} },
+      { id: "m_c41ab_27", slotId: "27", owner: "", note: "", barcodes: {} },
+      { id: "m_c41ab_29", slotId: "29", owner: "", note: "", barcodes: {} }
+    ];
+
+    
+
+
+var initialC41ACMachines = [
+      { id: "m_c41_sut1", slotId: "SUT#1", owner: "Archer", role: "BMC", note: "外滑軌先不借，先看看原本的夠不夠用", barcodes: {} },
+      { id: "m_c41_sut2", slotId: "SUT#2", owner: "Gimmy", role: "BMC", note: "外滑軌先不借，先看看原本的夠不夠用", barcodes: {} },
+      { id: "m_c41_sut3", slotId: "SUT#3", owner: "Gimmy", role: "BMC", note: "外滑軌先不借，先看看原本的夠不夠用", barcodes: {} },
+      { id: "m_c41_sut4", slotId: "SUT#4", owner: "Jack", role: "BMC", note: "外滑軌先不借，先看看原本的夠不夠用", barcodes: {} },
+      { id: "m_c41_sut5", slotId: "SUT#5", owner: "Oscar", role: "RM/Security", note: "外滑軌先不借，先看看原本的夠不夠用", barcodes: {} },
+      { id: "m_c41_sut6", slotId: "SUT#6 (MSFT)", owner: "Nicky", role: "MSFT", note: "外滑軌先不借，先看看原本的夠不夠用", barcodes: {} }
+    ];
+
+    
+
+
+var initialC43ABMachines = [
+      {
+        id: "m_slot_1", slotId: "1", owner: "Eileen", note: "",
+        barcodes: {
+          "CPU#0": "800000555767", "CPU#1": "800000555768", "CPU#2": "800000555769", "CPU#3": "800000555770",
+          "GP Card": "800000548212",
+          "HM11 C4XAB MB SKU A PV, rework 8 resistance #1": "800000593148",
+          "HM11 C4XAB MB SKU A PV, rework 8 resistance #2": "800000593147",
+          "M.2#1": "800000453529", "M.2#2": "x", "M.2#3": "x", "M.2#4": "x",
+          "E1.S#1": "800000576277", "E1.S#2": "800000576278", "E1.S#3": "800000576279", "E1.S#4": "800000576280",
+          "E1.S#5": "800000576281", "E1.S#6": "800000576282", "E1.S#7": "800000576283", "E1.S#8": "800000576284",
+          "DC-SCM#1": "800000623350 (Caffrey)", "DC-SCM#2": "800000628278 (Caffrey)",
+          "DIMM#1": "拆給12", "DIMM#2": "拆給12", "DIMM#3": "拆給12", "DIMM#4": "拆給12", "DIMM#5": "拆給12",
+          "DIMM#6": "拆給12", "DIMM#7": "拆給12", "DIMM#8": "拆給12", "DIMM#9": "拆給12", "DIMM#10": "拆給12",
+          "DIMM#11": "拆給12", "DIMM#12": "拆給12", "DIMM#13": "拆給12", "DIMM#14": "拆給12", "DIMM#15": "拆給12",
+          "DIMM#16": "拆給12", "DIMM#17": "拆給12", "DIMM#18": "拆給12", "DIMM#19": "拆給12", "DIMM#20": "拆給12",
+          "DIMM#21": "拆給12", "DIMM#22": "拆給12", "DIMM#23": "拆給12", "DIMM#24": "拆給12", "DIMM#25": "拆給12",
+          "DIMM#26": "拆給12", "DIMM#27": "拆給12", "DIMM#28": "拆給12", "DIMM#29": "拆給12", "DIMM#30": "拆給12",
+          "DIMM#31": "拆給12", "DIMM#32": "拆給12", "DIMM#33": "拆給12", "DIMM#34": "拆給12", "DIMM#35": "拆給12",
+          "DIMM#36": "拆給12", "DIMM#37": "拆給12", "DIMM#38": "拆給12", "DIMM#39": "拆給12", "DIMM#40": "拆給12",
+          "DIMM#41": "拆給12", "DIMM#42": "拆給12", "DIMM#43": "拆給12", "DIMM#44": "拆給12", "DIMM#45": "拆給12",
+          "DIMM#46": "拆給12", "DIMM#47": "拆給12", "DIMM#48": "拆給12", "DIMM#49": "拆給12", "DIMM#50": "拆給12",
+          "DIMM#51": "拆給12", "DIMM#52": "拆給12", "DIMM#53": "拆給12", "DIMM#54": "拆給12", "DIMM#55": "拆給12",
+          "DIMM#56": "拆給12", "DIMM#57": "拆給12", "DIMM#58": "拆給12", "DIMM#59": "拆給12", "DIMM#60": "拆給12",
+          "DIMM#61": "拆給12", "DIMM#62": "拆給12", "DIMM#63": "拆給12", "DIMM#64": "拆給12",
+          "HM11 C4XAB H-PDBv2 (with I3C Hub Solution),M1319108-005": "800000624328",
+          "4S/8S Sled 12V Power Cable, M1336745-002": "SC17C06371",
+          "Front E1.S Intrusion Switch Cable,RWHHW-Y378, M1324984-002": "SC17C00008",
+          "4S/8S Sled Rear Intrusion Switch Cable,RWHHW-Y061, M1324985-002": "SC17C00009",
+          "4S/8S Sled CUP0 UPI2 Cable, M1336753-002": "SC17C06379",
+          "4S/8S Sled CUP0 UPI1 Cable, M1336752-002": "SC17C06380",
+          "4S/8S Sled CUP1 UPI0 Cable, M1336754-002": "SC17C06380",
+          "4S/8S Sled CUP1 UPI2 Cable, M1336755-002": "SC17C06381",
+          "4S/8S Sled#1 Sideband Cable,M1336748-002": "SC17C06374",
+          "4S/8S Sled#2 Sideband Cable, M1336749-002": "SC17C06375",
+          "2S/4S Busbar 48V Power Cable PV,COO Mexico,M1340388-001": "SC17C05876",
+          "4S/8S Rear Sled#2 12V Power Cable,M1336746-002 _#2": "SC17C06372",
+          "4S/8S Rear Sled#1 12V Power Cable, M1336747-002_#1": "SC17C06373",
+          "Rear Cover Intrusion Switch Cable, M1336760-002": "SC17C06393",
+          "4S/8S Rear Sled#1 Sideband Cable, M1336750-002": "SC17C06376",
+          "4S/8S Rear Sled#2 Sideband Cable,M1336751-002": "SC17C06377",
+          "4S Rear CPU0 UPI1 Cable, M1336756-002": "SC17C06382",
+          "4S Rear CPU0 UPI0 Cable, M1336757-002": "SC17C06383",
+          "4S Rear CPU0/1 UPI2 Cable, M1336758-002": "SC17C06384",
+          "4S Rear CPU1/0 UPI2 Cable, M1336759-002": "SC17C06385",
+          "4S FAN#6 Extension Cable, M1336767-002": "SC17C06423",
+          "4S FAN#5 Extension Cable, M1336766-002": "SC17C06422",
+          "4S FAN#4 Extension Cable, M1336765-002": "SC17C06421",
+          "4S FAN#3 Extension Cable, M1336764-002": "SC17C06420",
+          "4S FAN#2 Extension Cable, M1336763-002": "SC17C06419",
+          "4S FAN#1 Extension Cable, M1336762-002": "SC17C06418",
+          "C43AB 3OU Fan Row Cage_DV2 T1 Sample, M1336735-002": "SM17B94089",
+          "4S Fan Module Cable, M1336761-002": "SC17C06417",
+          "C43AB/C46AB_6056MM FAN_AVC_DV, M1336743-002": "SF17C07108",
+          "滑軌外滑軌_C43AB/C46AB Ourter Chassis Sliding Rail Set_DVT": "SM17B88507 *2",
+          "內滑軌_C46AB Sled Rail Set-Rework": "SM17B88504_1 *2",
+          "Chassis_C43AB 3OU chassis_DVT": "SM17B94086-800000568445"
+        }
+      },
+      {
+        id: "m_slot_4", slotId: "4", owner: "Justin", note: "",
+        barcodes: {
+          "CPU#0": "800000585405", "CPU#1": "800000585404", "CPU#2": "800000585403", "CPU#3": "800000585402",
+          "GP Card": "548242",
+          "M.2#1": "800000430349", "M.2#2": "800000430350", "M.2#3": "800000430351", "M.2#4": "800000430383",
+          "E1.S#1": "537586", "E1.S#2": "537587", "E1.S#3": "537588", "E1.S#4": "537590",
+          "E1.S#5": "537585", "E1.S#6": "537584", "E1.S#7": "537583", "E1.S#8": "537589",
+          "DC-SCM#1": "800000563226", "DC-SCM#2": "800000563227",
+          "DIMM#1": "468389", "DIMM#2": "468370", "DIMM#3": "468369", "DIMM#4": "468368", "DIMM#5": "468367"
+        }
+      },
+      {
+        id: "m_slot_9", slotId: "9", owner: "Eileen", note: "預計出給BDC barcode + 微軟料號",
+        barcodes: {
+          "CPU#0": "800000555778", "CPU#1": "800000555777", "CPU#2": "800000555776", "CPU#3": "800000555775",
+          "GP Card": "800000503802",
+          "HM11 C4XAB MB SKU A PV, rework 8 resistance #1": "80000593119",
+          "HM11 C4XAB MB SKU A PV, rework 8 resistance #2": "80000593118",
+          "M.2#1": "800000429838", "M.2#2": "800000429839", "M.2#3": "800000429836", "M.2#4": "800000429837",
+          "E1.S#1": "800000576290", "E1.S#2": "800000576291", "E1.S#3": "800000576295", "E1.S#4": "800000576296",
+          "E1.S#5": "800000576297", "E1.S#6": "800000576298", "E1.S#7": "800000576299", "E1.S#8": "800000576300",
+          "DC-SCM#1": "800000563231", "DC-SCM#2": "800000563233"
+        }
+      },
+      {
+        id: "m_slot_12", slotId: "12", owner: "Eileen", note: "預計出給BDC barcode + 微軟料號",
+        barcodes: {
+          "CPU#0": "800000585612", "CPU#1": "800000585610", "CPU#2": "800000585647", "CPU#3": "800000585611",
+          "GP Card": "800000548211",
+          "HM11 C4XAB MB SKU A PV, rework 8 resistance #1": "800000593145",
+          "HM11 C4XAB MB SKU A PV, rework 8 resistance #2": "800000593146",
+          "M.2#1": "800000430380", "M.2#2": "800000430381", "M.2#3": "x", "M.2#4": "x",
+          "E1.S#1": "800000630759", "E1.S#2": "800000630761", "E1.S#3": "800000630762", "E1.S#4": "800000630760",
+          "E1.S#5": "800000630763", "E1.S#6": "800000630764", "E1.S#7": "800000630765", "E1.S#8": "800000630766",
+          "DC-SCM#1": "800000563267", "DC-SCM#2": "800000563236"
+        }
+      },
+      {
+        id: "m_slot_25", slotId: "25", owner: "Justin", note: "預計出給BDC barcode + 微軟料號",
+        barcodes: {
+          "CPU#0": "800000555622", "CPU#1": "800000555624", "CPU#2": "800000555621", "CPU#3": "800000555623",
+          "GP Card": "800000488242",
+          "HM11 C4XAB MB SKU A PV, rework 8 resistance #1": "800000593611",
+          "HM11 C4XAB MB SKU A PV, rework 8 resistance #2": "800000593612",
+          "M.2#1": "800000430350", "M.2#2": "800000453570", "M.2#3": "800000453569", "M.2#4": "800000453571",
+          "DC-SCM#1": "800000563229", "DC-SCM#2": "800000563227"
+        }
+      },
+      { id: "m_slot_32ami", slotId: "32AMI", owner: "Eileen", note: "", barcodes: {} }
+    ];
+
+    
+
+
+
+var currentProject = "C41AB";
+var allProjectData = {
+  C43AB: initialC43ABMachines,
+  C41AB: initialC41ABMachines,
+  C41AC: initialC41ACMachines
+};
+
+var STORAGE_KEY_DATA = "MULTI_PROJECT_BARCODES_CLEAN_V5";
+var STORAGE_KEY_BOM = "MULTI_PROJECT_BOMS_CLEAN_V5";
+
+function loadData() {
+  try {
+    var savedBom = localStorage.getItem(STORAGE_KEY_BOM);
+    if (savedBom) {
+      var parsedBom = JSON.parse(savedBom);
+      if (parsedBom && typeof parsedBom === "object") projectCategoriesMap = parsedBom;
+    }
+  } catch (e) {
+    console.error("loadData BOM error", e);
+  }
+
+  try {
+    var saved = localStorage.getItem(STORAGE_KEY_DATA);
+    if (saved) {
+      var parsed = JSON.parse(saved);
+      if (parsed && typeof parsed === "object") allProjectData = parsed;
+    }
+  } catch (e) {
+    console.error("loadData error", e);
+  }
+}
+
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(allProjectData));
+    localStorage.setItem(STORAGE_KEY_BOM, JSON.stringify(projectCategoriesMap));
+  } catch (e) {
+    console.error("saveData error", e);
+  }
+}
+
+function getActiveCategories() {
+  return projectCategoriesMap[currentProject] || C43AB_CATEGORIES;
+}
+
+function getActiveMachines() {
+  if (!allProjectData[currentProject]) {
+    allProjectData[currentProject] = [];
+  }
+  return allProjectData[currentProject];
+}
+
+var currentTab = "";
+
+function switchProject(proj) {
+  currentProject = proj;
+  var machines = getActiveMachines();
+  currentTab = machines.length > 0 ? machines[0].id : "compare";
+  renderProjectButtons();
+  renderApp();
+  showToast("已切換至 " + proj + " 專案");
+}
+
+function renderProjectButtons() {
+  var wrapper = document.getElementById("projectListWrapper");
+  if (!wrapper) return;
+  wrapper.innerHTML = "";
+  Object.keys(allProjectData).forEach(function(proj) {
+    var btn = document.createElement("button");
+    btn.className = "project-btn " + (currentProject === proj ? "active" : "");
+    btn.textContent = proj;
+    btn.onclick = function() { switchProject(proj); };
+    wrapper.appendChild(btn);
+  });
+}
+
+function toggleCompareCenter() {
+  if (currentTab === "compare") {
+    var machines = getActiveMachines();
+    switchTab(machines.length > 0 ? machines[0].id : "compare");
+  } else {
+    switchTab("compare");
+  }
+}
+
+function promptNewProject() {
+  var name = prompt("請輸入新專案名稱 (例如: C46AB_SUT):");
+  if (!name) return;
+  name = name.trim();
+  if (!name) return;
+  if (allProjectData[name]) {
+    alert("該專案名稱已存在！");
+    return;
+  }
+  projectCategoriesMap[name] = [
+    {
+      id: "custom_cat_1",
+      name: "主要物料清單",
+      cssClass: "cat-cpu",
+      items: [
+        { key: "CPU#0", label: "CPU#0", usage: 1 },
+        { key: "Motherboard", label: "Motherboard", usage: 1 }
+      ]
+    }
+  ];
+  allProjectData[name] = [
+    { id: "m_" + Date.now(), slotId: "SUT#1", owner: "Eileen", note: "", barcodes: {} }
+  ];
+  saveData();
+  switchProject(name);
+  showToast("已建立新專案 [" + name + "]");
+}
+
+function promptEditProject() {
+  var newName = prompt("請輸入專案新名稱:", currentProject);
+  if (!newName || newName.trim() === currentProject) return;
+  newName = newName.trim();
+  
+  allProjectData[newName] = allProjectData[currentProject];
+  delete allProjectData[currentProject];
+  projectCategoriesMap[newName] = projectCategoriesMap[currentProject];
+  delete projectCategoriesMap[currentProject];
+
+  currentProject = newName;
+  saveData();
+  renderProjectButtons();
+  renderApp();
+  showToast("專案已更名為 [" + newName + "]");
+}
+
+function promptDeleteProject() {
+  var keys = Object.keys(allProjectData);
+  if (keys.length <= 1) {
+    alert("至少必須保留一個專案！");
+    return;
+  }
+  if (confirm("確定要刪除專案 [" + currentProject + "] 及其所有機台資料嗎？")) {
+    delete allProjectData[currentProject];
+    delete projectCategoriesMap[currentProject];
+    currentProject = Object.keys(allProjectData)[0];
+    saveData();
+    renderProjectButtons();
+    renderApp();
+    showToast("已刪除專案");
+  }
+}
+
+function promptAddItem(catIdx) {
+  var itemName = prompt("請輸入新物料名稱 (例如: Mellanox CX6 NIC):");
+  if (!itemName) return;
+  var usageStr = prompt("請輸入用量 (Usage，預設 1):", "1") || "1";
+  var usageVal = parseInt(usageStr, 10);
+  if (isNaN(usageVal)) usageVal = 1;
+
+  var cats = getActiveCategories();
+  cats[catIdx].items.push({
+    key: itemName.trim(),
+    label: itemName.trim(),
+    usage: usageVal
+  });
+
+  saveData();
+  renderApp();
+  showToast("已新增物料 [" + itemName.trim() + "]");
+}
+
+function updateItemName(catIdx, itemIdx, newName) {
+  newName = newName.trim();
+  if (!newName) return;
+  var cats = getActiveCategories();
+  var oldKey = cats[catIdx].items[itemIdx].key;
+  cats[catIdx].items[itemIdx].label = newName;
+  cats[catIdx].items[itemIdx].key = newName;
+
+  var machines = getActiveMachines();
+  machines.forEach(function(m) {
+    if (m.barcodes[oldKey] !== undefined) {
+      m.barcodes[newName] = m.barcodes[oldKey];
+      delete m.barcodes[oldKey];
+    }
+  });
+
+  saveData();
+  showToast("物料名稱已更新");
+}
+
+function deleteItem(catIdx, itemIdx) {
+  var cats = getActiveCategories();
+  var item = cats[catIdx].items[itemIdx];
+  if (confirm("確定要從此專案刪除物料 [" + item.label + "] 嗎？")) {
+    var key = item.key;
+    cats[catIdx].items.splice(itemIdx, 1);
+    var machines = getActiveMachines();
+    machines.forEach(function(m) {
+      delete m.barcodes[key];
+    });
+    saveData();
+    renderApp();
+    showToast("已刪除物料");
+  }
+}
+
+// 複製特定欄位整欄 (以符合 Excel 貼上的直行字串格式)
+function copyColumnData(type, machineId, catIdx) {
+  var machine = getActiveMachines().find(function(m) { return m.id === machineId; });
+  if (!machine) return;
+
+  var categories = getActiveCategories();
+  var lines = [];
+
+  var targetCats = (catIdx !== undefined && catIdx !== null) ? [categories[catIdx]] : categories;
+
+  targetCats.forEach(function(cat) {
+    cat.items.forEach(function(item) {
+      if (type === "barcode") {
+        lines.push(machine.barcodes[item.key] || "");
+      } else if (type === "name") {
+        lines.push(item.label || item.key);
+      } else if (type === "name_barcode") {
+        lines.push((item.label || item.key) + "\t" + (machine.barcodes[item.key] || ""));
+      } else if (type === "full") {
+        var u = item.usage !== undefined ? item.usage : 1;
+        lines.push((item.label || item.key) + "\t" + u + "\t" + (machine.barcodes[item.key] || ""));
+      }
+    });
+  });
+
+  var LF = String.fromCharCode(10);
+  var clipText = lines.join(LF);
+
+  navigator.clipboard.writeText(clipText).then(function() {
+    var typeText = "純條碼清單";
+    if (type === "name") typeText = "物料規格清單";
+    if (type === "name_barcode") typeText = "【物料 + 條碼】雙欄";
+    if (type === "full") typeText = "【物料 + 用量 + 條碼】完整資料";
+    showToast("已複製 " + lines.length + " 列" + typeText + " (可直接貼回 Excel)！");
+  });
+}
+
+function renderApp() {
+  var tabsBar = document.getElementById("tabsBar");
+  var viewsContainer = document.getElementById("machineViewsContainer");
+  var compareTargetSelect = document.getElementById("compareTargetSelect");
+  var categories = getActiveCategories();
+  var machines = getActiveMachines();
+
+  if (!currentTab || (!machines.some(function(m) { return m.id === currentTab; }) && currentTab !== "compare")) {
+    currentTab = machines[0] ? machines[0].id : "compare";
+  }
+
+  var btnTopBadge = document.getElementById("btnTopCompareBadge");
+  if (btnTopBadge) {
+    btnTopBadge.classList.toggle("active", currentTab === "compare");
+  }
+
+  tabsBar.innerHTML = "";
+  viewsContainer.innerHTML = "";
+  compareTargetSelect.innerHTML = "";
+
+  machines.forEach(function(m) {
+    var btn = document.createElement("button");
+    btn.className = "tab-btn machine-tab-btn " + (currentTab === m.id ? "active" : "");
+    btn.onclick = function() { switchTab(m.id); };
+    btn.innerHTML = "<span>" + escapeHtml(m.slotId) + "</span><span class='tab-owner-tag'>" + escapeHtml(m.owner || "未分配") + (m.role ? " · " + escapeHtml(m.role) : "") + "</span>";
+    tabsBar.appendChild(btn);
+
+    var opt = document.createElement("option");
+    opt.value = m.id;
+    opt.textContent = m.slotId + " (" + (m.owner || "未指派") + (m.role ? " · " + m.role : "") + ") " + (m.note ? "- " + m.note : "");
+    compareTargetSelect.appendChild(opt);
+
+    var view = document.createElement("div");
+    view.id = "tab-" + m.id;
+    view.className = "tab-content " + (currentTab === m.id ? "active" : "");
+
+    // 構建機台資訊卡
+    var infoCard = document.createElement("div");
+    infoCard.className = "machine-info-card";
+
+    var metaBox = document.createElement("div");
+    metaBox.className = "machine-meta";
+
+    metaBox.innerHTML = `
+      <div class="meta-item">
+        <span class="meta-label">機台/Slot ID:</span>
+        <input type="text" class="meta-input" style="width:110px; font-weight:700;" value="` + escapeHtml(m.slotId) + `" data-action="slotId">
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Owner:</span>
+        <input type="text" class="meta-input" style="width:100px;" value="` + escapeHtml(m.owner) + `" data-action="owner">
+      </div>
+      ` + (m.role !== undefined ? `
+      <div class="meta-item">
+        <span class="meta-label">角色/組別:</span>
+        <input type="text" class="meta-input" style="width:120px;" value="` + escapeHtml(m.role || '') + `" data-action="role">
+      </div>` : '') + `
+      <div class="meta-item">
+        <span class="meta-label">備註說明:</span>
+        <input type="text" class="meta-input" style="width:320px;" placeholder="備註..." value="` + escapeHtml(m.note || '') + `" data-action="note">
+      </div>
+    `;
+
+    metaBox.querySelectorAll(".meta-input").forEach(function(inp) {
+      inp.onchange = function() {
+        var field = inp.getAttribute("data-action");
+        updateMachineMeta(m.id, field, inp.value);
+      };
+    });
+
+    // 豐富的整欄複製與操作快捷列
+    var actionBox = document.createElement("div");
+    actionBox.style.display = "flex";
+    actionBox.style.gap = "6px";
+    actionBox.style.flexWrap = "wrap";
+
+    var copyBarBtn = document.createElement("button");
+    copyBarBtn.className = "btn btn-outline";
+    copyBarBtn.innerHTML = "📋 複製整欄條碼";
+    copyBarBtn.title = "複製全台所有條碼 (純條碼直欄，可直接貼入 Excel)";
+    copyBarBtn.onclick = function() { copyColumnData("barcode", m.id); };
+
+    var copyNameBarBtn = document.createElement("button");
+    copyNameBarBtn.className = "btn btn-outline";
+    copyNameBarBtn.innerHTML = "📋 複製雙欄 (物料+條碼)";
+    copyNameBarBtn.title = "複製全台物料與條碼 (雙欄 TSV 格式)";
+    copyNameBarBtn.onclick = function() { copyColumnData("name_barcode", m.id); };
+
+    var copyFullBtn = document.createElement("button");
+    copyFullBtn.className = "btn btn-outline";
+    copyFullBtn.innerHTML = "📋 複製全表 (物料+用量+條碼)";
+    copyFullBtn.title = "複製完整表格 (三欄 TSV 格式)";
+    copyFullBtn.onclick = function() { copyColumnData("full", m.id); };
+
+    var dupBtn = document.createElement("button");
+    dupBtn.className = "btn btn-outline";
+    dupBtn.textContent = "📑 複製機台";
+    dupBtn.onclick = function() { duplicateMachine(m.id); };
+
+    var delBtn = document.createElement("button");
+    delBtn.className = "btn btn-outline";
+    delBtn.style.color = "var(--danger)";
+    delBtn.style.borderColor = "#fca5a5";
+    delBtn.textContent = "🗑 刪除機台";
+    delBtn.onclick = function() { deleteMachine(m.id); };
+
+    actionBox.appendChild(copyBarBtn);
+    actionBox.appendChild(copyNameBarBtn);
+    actionBox.appendChild(copyFullBtn);
+    actionBox.appendChild(dupBtn);
+    actionBox.appendChild(delBtn);
+
+    infoCard.appendChild(metaBox);
+    infoCard.appendChild(actionBox);
+    view.appendChild(infoCard);
+
+    // 構建物料分類列表
+    categories.forEach(function(cat, catIdx) {
+      var catGroup = document.createElement("div");
+      catGroup.className = "category-group";
+
+      var catHeader = document.createElement("div");
+      catHeader.className = "cat-header " + (cat.cssClass || "cat-cpu");
+      catHeader.innerHTML = `
+        <span>` + escapeHtml(cat.name) + `</span>
+        <div class="cat-header-actions">
+          <span style="font-size:12px; font-weight:normal; opacity:0.85;">` + cat.items.length + ` 項物料</span>
+          <button class="btn btn-xs btn-outline btn-add-mat" style="background:#fff;">➕ 新增物料</button>
+        </div>
+      `;
+      catHeader.querySelector(".btn-add-mat").onclick = function() { promptAddItem(catIdx); };
+      catGroup.appendChild(catHeader);
+
+      if (cat.isDimmGrid) {
+        var grid = document.createElement("div");
+        grid.className = "dimm-grid-container";
+        cat.items.forEach(function(item) {
+          var val = m.barcodes[item.key] || "";
+          var cell = document.createElement("div");
+          cell.className = "dimm-cell";
+          cell.innerHTML = `
+            <span class="dimm-label">` + escapeHtml(item.label) + `</span>
+            <input type="text" class="grid-input dimm-input ` + (val ? 'has-val' : '') + `" 
+                   value="` + escapeHtml(val) + `" placeholder="條碼..."
+                   data-machine-id="` + m.id + `" data-item-key="` + item.key + `">
+          `;
+          var inp = cell.querySelector("input");
+          inp.onchange = function() { updateBarcode(m.id, item.key, inp.value); };
+          inp.onpaste = function(e) { handleBatchPaste(e, m.id, item.key, "barcode"); };
+          inp.onkeydown = handleArrowNav;
+          grid.appendChild(cell);
+        });
+        catGroup.appendChild(grid);
+      } else {
+        var tbl = document.createElement("table");
+        tbl.className = "barcode-table";
+        tbl.innerHTML = `
+          <thead>
+            <tr>
+              <th class="col-idx">#</th>
+              <th class="col-name">
+                物料規格 / 項目名稱
+                <div class="th-btn-group">
+                  <button class="btn-header-copy btn-copy-name" title="複製此分類的所有物料名稱">📋 複製物料欄</button>
+                </div>
+              </th>
+              <th class="col-usage">用量</th>
+              <th class="col-input">
+                物料條碼 (Barcode / 料號)
+                <div class="th-btn-group">
+                  <button class="btn-header-copy btn-copy-bar" title="複製此分類的所有條碼">📋 複製條碼欄</button>
+                </div>
+              </th>
+              <th class="col-actions">操作</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        `;
+
+        tbl.querySelector(".btn-copy-name").onclick = function() { copyColumnData("name", m.id, catIdx); };
+        tbl.querySelector(".btn-copy-bar").onclick = function() { copyColumnData("barcode", m.id, catIdx); };
+
+        var tbody = tbl.querySelector("tbody");
+
+        cat.items.forEach(function(item, itemIdx) {
+          var val = m.barcodes[item.key] || "";
+          var usageVal = item.usage !== undefined ? item.usage : 1;
+          var tr = document.createElement("tr");
+
+          tr.innerHTML = `
+            <td class="col-idx">` + (itemIdx + 1) + `</td>
+            <td class="col-name">
+              <input type="text" class="item-name-input" value="` + escapeHtml(item.label) + `" title="點擊修改名稱，亦支援整欄貼上">
+            </td>
+            <td class="col-usage">
+              <span class="usage-badge ` + (usageVal === 0 ? 'zero' : 'active-use') + `">` + usageVal + `</span>
+            </td>
+            <td class="col-input">
+              <input type="text" class="grid-input normal-input ` + (val ? 'has-val' : '') + `" 
+                     value="` + escapeHtml(val) + `" 
+                     placeholder="` + (val ? '' : (usageVal === 0 ? '用量為 0 (可留空)' : '點擊輸入或按 Ctrl+V 批次貼上')) + `"
+                     data-machine-id="` + m.id + `" data-item-key="` + item.key + `">
+            </td>
+            <td class="col-actions">
+              <button class="del-btn" title="刪除此物料">🗑</button>
+            </td>
+          `;
+
+          var nameInp = tr.querySelector(".item-name-input");
+          nameInp.onchange = function() { updateItemName(catIdx, itemIdx, nameInp.value); };
+          nameInp.onpaste = function(e) { handleBatchPaste(e, m.id, item.key, "name"); };
+          nameInp.onkeydown = handleArrowNav;
+
+          var barInp = tr.querySelector(".grid-input");
+          barInp.onchange = function() { updateBarcode(m.id, item.key, barInp.value); };
+          barInp.onpaste = function(e) { handleBatchPaste(e, m.id, item.key, "barcode"); };
+          barInp.onkeydown = handleArrowNav;
+
+          var itemDelBtn = tr.querySelector(".del-btn");
+          itemDelBtn.onclick = function() { deleteItem(catIdx, itemIdx); };
+
+          tbody.appendChild(tr);
+        });
+
+        catGroup.appendChild(tbl);
+      }
+
+      view.appendChild(catGroup);
+    });
+
+    viewsContainer.appendChild(view);
+  });
+
+  var compareTabView = document.getElementById("tab-compare");
+  if (currentTab === "compare") {
+    compareTabView.classList.add("active");
+    runComparison();
+  } else {
+    compareTabView.classList.remove("active");
+  }
+}
+
+function switchTab(tabId) {
+  currentTab = tabId;
+  document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
+  document.querySelectorAll(".tab-content").forEach(function(v) { v.classList.remove("active"); });
+
+  var btnTopBadge = document.getElementById("btnTopCompareBadge");
+  if (btnTopBadge) {
+    btnTopBadge.classList.toggle("active", tabId === "compare");
+  }
+
+  if (tabId === "compare") {
+    document.getElementById("tab-compare").classList.add("active");
+    runComparison();
+  } else {
+    var machines = getActiveMachines();
+    var targetMach = machines.find(function(m) { return m.id === tabId; });
+    if (targetMach) {
+      var btns = Array.from(document.querySelectorAll(".machine-tab-btn"));
+      btns.forEach(function(b) {
+        if (b.textContent.indexOf(targetMach.slotId) !== -1) b.classList.add("active");
+      });
+    }
+    var activeView = document.getElementById("tab-" + tabId);
+    if (activeView) activeView.classList.add("active");
+  }
+}
+
+function updateMachineMeta(machineId, key, val) {
+  var machines = getActiveMachines();
+  var machine = machines.find(function(m) { return m.id === machineId; });
+  if (machine) {
+    machine[key] = val;
+    saveData();
+    renderApp();
+  }
+}
+
+function updateBarcode(machineId, itemKey, val) {
+  var machines = getActiveMachines();
+  var machine = machines.find(function(m) { return m.id === machineId; });
+  if (machine) {
+    machine.barcodes[itemKey] = val.trim();
+    saveData();
+  }
+}
+
+// 智能 2D Excel 矩陣複製貼上 (支援單欄向下填入、雙欄/多欄同時填入物料與條碼)
+function handleBatchPaste(event, machineId, startItemKey, targetType) {
+  var clipboardData = event.clipboardData || window.clipboardData;
+  if (!clipboardData) return;
+  var pastedData = clipboardData.getData("Text");
+  if (!pastedData) return;
+
+  var LF = String.fromCharCode(10);
+  var CR = String.fromCharCode(13);
+  var lines = pastedData.split(CR).join("").split(LF)
+    .map(function(l) { return l; })
+    .filter(function(l) { return l.length > 0; });
+
+  if (lines.length <= 1 && lines[0].indexOf("\t") === -1) {
+    return;
+  }
+
+  event.preventDefault();
+
+  var machines = getActiveMachines();
+  var machine = machines.find(function(m) { return m.id === machineId; });
+  if (!machine) return;
+
+  var categories = getActiveCategories();
+  var allItemsFlat = [];
+  categories.forEach(function(cat, catIdx) {
+    cat.items.forEach(function(item, itemIdx) {
+      allItemsFlat.push({ catIdx: catIdx, itemIdx: itemIdx, item: item });
+    });
+  });
+
+  var startIndex = allItemsFlat.findIndex(function(entry) {
+    return entry.item.key === startItemKey;
+  });
+
+  if (startIndex === -1) return;
+
+  var updatedCount = 0;
+
+  for (var i = 0; i < lines.length; i++) {
+    var targetEntryIdx = startIndex + i;
+    if (targetEntryIdx >= allItemsFlat.length) break;
+
+    var entry = allItemsFlat[targetEntryIdx];
+    var lineCols = lines[i].split("\t");
+
+    if (lineCols.length >= 2) {
+      // 貼上內容包含兩欄或以上 (例如 Excel 複製了【物料名稱 \t 條碼】或【物料 \t 用量 \t 條碼】)
+      if (lineCols.length === 2) {
+        var col0 = lineCols[0].trim();
+        var col1 = lineCols[1].trim();
+        if (targetType === "name") {
+          updateItemName(entry.catIdx, entry.itemIdx, col0);
+          machine.barcodes[col0] = col1;
+        } else {
+          updateItemName(entry.catIdx, entry.itemIdx, col0);
+          machine.barcodes[col0] = col1;
+        }
+      } else if (lineCols.length >= 3) {
+        var colName = lineCols[0].trim();
+        var colUsage = parseInt(lineCols[1].trim(), 10);
+        var colBarcode = lineCols[2].trim();
+        updateItemName(entry.catIdx, entry.itemIdx, colName);
+        if (!isNaN(colUsage)) entry.item.usage = colUsage;
+        machine.barcodes[colName] = colBarcode;
+      }
+      updatedCount++;
+    } else {
+      var singleVal = lineCols[0].trim();
+      if (targetType === "name") {
+        updateItemName(entry.catIdx, entry.itemIdx, singleVal);
+      } else {
+        machine.barcodes[entry.item.key] = singleVal;
+      }
+      updatedCount++;
+    }
+  }
+
+  saveData();
+  renderApp();
+  showToast("已成功向下填入 " + updatedCount + " 筆資料！");
+}
+
+function handleArrowNav(e) {
+  if (e.key === "ArrowDown" || e.key === "Enter") {
+    e.preventDefault();
+    var inputs = Array.from(e.target.closest(".tab-content").querySelectorAll(".grid-input, .item-name-input"));
+    var idx = inputs.indexOf(e.target);
+    if (idx !== -1 && idx < inputs.length - 1) inputs[idx + 1].focus();
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    var inputs = Array.from(e.target.closest(".tab-content").querySelectorAll(".grid-input, .item-name-input"));
+    var idx = inputs.indexOf(e.target);
+    if (idx > 0) inputs[idx - 1].focus();
+  }
+}
+
+function duplicateMachine(machineId) {
+  var machines = getActiveMachines();
+  var source = machines.find(function(m) { return m.id === machineId; });
+  if (!source) return;
+
+  var newSlot = prompt("請輸入新機台的名稱/Slot ID:", source.slotId + "_Copy");
+  if (!newSlot) return;
+
+  var newMachine = {
+    id: "m_" + Date.now(),
+    slotId: newSlot,
+    owner: source.owner,
+    role: source.role || "",
+    note: source.note,
+    barcodes: Object.assign({}, source.barcodes)
+  };
+
+  machines.push(newMachine);
+  saveData();
+  currentTab = newMachine.id;
+  renderApp();
+  showToast("已成功複製機台 " + newSlot);
+}
+
+function addNewMachine() {
+  var slotId = prompt("請輸入要在 [" + currentProject + "] 新增的機台名稱 (例如: SUT#7 或 Slot 36):");
+  if (!slotId) return;
+
+  var owner = prompt("請輸入負責人 (Owner):", "Eileen") || "";
+  var machines = getActiveMachines();
+  var newMachine = {
+    id: "m_" + Date.now(),
+    slotId: slotId.trim(),
+    owner: owner.trim(),
+    role: "",
+    note: "",
+    barcodes: {}
+  };
+
+  machines.push(newMachine);
+  saveData();
+  currentTab = newMachine.id;
+  renderApp();
+  showToast("已建立機台 " + slotId);
+}
+
+function deleteMachine(machineId) {
+  var machines = getActiveMachines();
+  var machine = machines.find(function(m) { return m.id === machineId; });
+  if (!machine) return;
+
+  if (confirm("確定要刪除 " + machine.slotId + " 嗎？")) {
+    allProjectData[currentProject] = machines.filter(function(m) { return m.id !== machineId; });
+    saveData();
+    var updated = getActiveMachines();
+    currentTab = updated.length > 0 ? updated[0].id : "compare";
+    renderApp();
+    showToast("已刪除該機台");
+  }
+}
+
+var currentMissingList = [];
+function runComparison() {
+  var selectEl = document.getElementById("compareTargetSelect");
+  if (!selectEl) return;
+  var targetId = selectEl.value;
+  var scannedRaw = document.getElementById("scannedBarcodeInput").value;
+  var machines = getActiveMachines();
+  var targetMachine = machines.find(function(m) { return m.id === targetId; });
+
+  if (!targetMachine) return;
+
+  var LF = String.fromCharCode(10);
+  var CR = String.fromCharCode(13);
+  var scannedLines = scannedRaw.split(CR).join("").split(LF)
+    .map(function(s) { return s.trim(); })
+    .filter(function(s) { return s.length > 0; });
+
+  var categories = getActiveCategories();
+  var expectedMap = {};
+  var totalExpectedCount = 0;
+
+  categories.forEach(function(cat) {
+    cat.items.forEach(function(item) {
+      var code = (targetMachine.barcodes[item.key] || "").trim();
+      if (code && code !== 'x' && code.indexOf("拆給") === -1) {
+        expectedMap[item.key] = code;
+        totalExpectedCount++;
+      }
+    });
+  });
+
+  var matchedCount = 0;
+  var missingItems = [];
+  var resultsHtml = "";
+
+  categories.forEach(function(cat) {
+    cat.items.forEach(function(item) {
+      var expBarcode = (targetMachine.barcodes[item.key] || "").trim();
+      if (!expBarcode || expBarcode === 'x') return;
+
+      var isMatched = scannedLines.some(function(scan) {
+        return scan === expBarcode || expBarcode.indexOf(scan) !== -1 || scan.indexOf(expBarcode) !== -1;
+      });
+
+      if (isMatched) {
+        matchedCount++;
+        resultsHtml += '<div class="comp-item matched"><div><strong>' + escapeHtml(item.label) + '</strong><span style="margin-left: 12px; font-family: monospace;">' + escapeHtml(expBarcode) + '</span></div><span class="badge-matched">✓ 比對成功</span></div>';
+      } else {
+        missingItems.push({ name: item.label, barcode: expBarcode });
+        resultsHtml += '<div class="comp-item missing"><div><strong>' + escapeHtml(item.label) + '</strong><span style="margin-left: 12px; font-family: monospace;">' + escapeHtml(expBarcode) + '</span></div><span class="badge-missing">✕ 尚未掃到</span></div>';
+      }
+    });
+  });
+
+  var expectedCodes = Object.values(expectedMap);
+  var extraCount = 0;
+  scannedLines.forEach(function(scan) {
+    var found = expectedCodes.some(function(exp) { return exp === scan || exp.indexOf(scan) !== -1 || scan.indexOf(exp) !== -1; });
+    if (!found) {
+      extraCount++;
+      resultsHtml += '<div class="comp-item unassigned"><div><strong>[未知條碼 / 多出物料]</strong><span style="margin-left: 12px; font-family: monospace;">' + escapeHtml(scan) + '</span></div><span class="badge-unassigned">⚠️ 非本台條碼</span></div>';
+    }
+  });
+
+  currentMissingList = missingItems;
+
+  document.getElementById("statTotalExpected").textContent = totalExpectedCount;
+  document.getElementById("statTotalMatched").textContent = matchedCount;
+  document.getElementById("statTotalMissing").textContent = missingItems.length;
+  document.getElementById("statTotalExtra").textContent = extraCount;
+
+  var pct = totalExpectedCount === 0 ? 0 : Math.round((matchedCount / totalExpectedCount) * 100);
+  document.getElementById("progressBarFill").style.width = pct + "%";
+  document.getElementById("statPercent").textContent = pct + "% (" + matchedCount + "/" + totalExpectedCount + " 完成)";
+
+  document.getElementById("compareResultList").innerHTML = resultsHtml || ('<div style="padding: 24px; text-align: center; color: var(--text-muted);">' + (totalExpectedCount === 0 ? '目前此機台尚未填入條碼' : '請在左側貼上已掃描之 Barcode 清單進行比對') + '</div>');
+}
+
+function copyMissingItems() {
+  if (currentMissingList.length === 0) {
+    showToast("目前無缺失物料！");
+    return;
+  }
+  var text = currentMissingList.map(function(item) { return item.name + "\t" + item.barcode; }).join(String.fromCharCode(10));
+  navigator.clipboard.writeText(text).then(function() {
+    showToast("已複製 " + currentMissingList.length + " 項缺件資料至剪貼簿！");
+  });
+}
+
+function exportFullJSON() {
+  var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+    allProjectData: allProjectData,
+    projectCategoriesMap: projectCategoriesMap
+  }, null, 2));
+  var downloadAnchor = document.createElement("a");
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", "Server_Barcodes_Backup_" + new Date().toISOString().slice(0,10) + ".json");
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+  showToast("已匯出備份 JSON 檔案！");
+}
+
+function importFullJSON() {
+  var input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json";
+  input.onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(event) {
+      try {
+        var imported = JSON.parse(event.target.result);
+        if (imported && (imported.allProjectData || imported.C43AB || imported.C41AB || imported.C41AC)) {
+          if (imported.allProjectData) {
+            allProjectData = imported.allProjectData;
+            if (imported.projectCategoriesMap) projectCategoriesMap = imported.projectCategoriesMap;
+          } else {
+            allProjectData = imported;
+          }
+          saveData();
+          renderProjectButtons();
+          renderApp();
+          showToast("備份資料匯入復原成功！");
+        } else {
+          alert("檔案格式不正確！");
+        }
+      } catch (err) {
+        alert("JSON 解析失敗，請確認檔案格式！");
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function escapeHtml(text) {
+  if (!text) return "";
+  return text.toString()
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function showToast(msg) {
+  var toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.classList.add("show");
+  setTimeout(function() { toast.classList.remove("show"); }, 2500);
+}
+
+// 初始化啟動
+loadData();
+renderProjectButtons();
+renderApp();
+</script>
+</body>
+</html>
