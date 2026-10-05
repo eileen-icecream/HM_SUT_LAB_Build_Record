@@ -1,0 +1,1640 @@
+!DOCTYPE html
+html lang=zh-TW
+head
+  meta charset=UTF-8
+  meta name=viewport content=width=device-width, initial-scale=1.0
+  titleC43AB Platform High Value Barcode 條碼管理與比對系統title
+  style
+    root {
+      --primary #2563eb;
+      --primary-hover #1d4ed8;
+      --bg-main #f8fafc;
+      --bg-card #ffffff;
+      --border-color #e2e8f0;
+      --text-main #0f172a;
+      --text-muted #64748b;
+      --success #10b981;
+      --success-bg #d1fae5;
+      --warning #f59e0b;
+      --danger #ef4444;
+      --danger-bg #fee2e2;
+    }
+
+     {
+      box-sizing border-box;
+      margin 0;
+      padding 0;
+      font-family -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans TC, sans-serif;
+    }
+
+    body {
+      background-color var(--bg-main);
+      color var(--text-main);
+      min-height 100vh;
+      display flex;
+      flex-direction column;
+    }
+
+     頂部標題列 
+    header {
+      background linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color white;
+      padding 16px 24px;
+      display flex;
+      justify-content space-between;
+      align-items center;
+      box-shadow 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      position sticky;
+      top 0;
+      z-index 50;
+    }
+
+    .header-title {
+      display flex;
+      align-items center;
+      gap 12px;
+    }
+
+    .header-title h1 {
+      font-size 20px;
+      font-weight 700;
+      letter-spacing 0.5px;
+    }
+
+    .header-badge {
+      background #3b82f6;
+      font-size 12px;
+      padding 3px 8px;
+      border-radius 9999px;
+      font-weight 600;
+    }
+
+    .header-actions {
+      display flex;
+      gap 10px;
+    }
+
+    .btn {
+      padding 8px 14px;
+      font-size 13px;
+      font-weight 600;
+      border-radius 6px;
+      border none;
+      cursor pointer;
+      display inline-flex;
+      align-items center;
+      gap 6px;
+      transition all 0.2s ease;
+    }
+
+    .btn-primary { background-color var(--primary); color white; }
+    .btn-primaryhover { background-color var(--primary-hover); }
+    .btn-secondary { background-color #475569; color white; }
+    .btn-secondaryhover { background-color #334155; }
+    .btn-success { background-color var(--success); color white; }
+    .btn-successhover { background-color #059669; }
+    .btn-outline { background-color transparent; border 1px solid #cbd5e1; color #334155; }
+    .btn-outlinehover { background-color #f1f5f9; }
+
+     分頁標籤導航 
+    .tabs-bar {
+      background #ffffff;
+      border-bottom 2px solid var(--border-color);
+      display flex;
+      align-items center;
+      padding 0 20px;
+      overflow-x auto;
+      gap 6px;
+    }
+
+    .tab-btn {
+      padding 12px 18px;
+      border none;
+      background none;
+      font-size 14px;
+      font-weight 600;
+      color var(--text-muted);
+      cursor pointer;
+      border-bottom 3px solid transparent;
+      display flex;
+      align-items center;
+      gap 8px;
+      white-space nowrap;
+      transition all 0.2s ease;
+    }
+
+    .tab-btnhover {
+      color var(--primary);
+      background-color #f8fafc;
+    }
+
+    .tab-btn.active {
+      color var(--primary);
+      border-bottom-color var(--primary);
+      background-color #eff6ff;
+    }
+
+    .tab-btn.compare-tab {
+      color #7c3aed;
+    }
+    .tab-btn.compare-tab.active {
+      color #7c3aed;
+      border-bottom-color #7c3aed;
+      background-color #f5f3ff;
+    }
+
+    .tab-owner-tag {
+      font-size 11px;
+      padding 2px 6px;
+      border-radius 4px;
+      background #e2e8f0;
+      color #475569;
+    }
+
+     主內容區域 
+    main {
+      flex 1;
+      padding 20px 24px;
+      max-width 1600px;
+      margin 0 auto;
+      width 100%;
+    }
+
+    .tab-content {
+      display none;
+    }
+
+    .tab-content.active {
+      display block;
+    }
+
+     機台資訊卡 
+    .machine-info-card {
+      background white;
+      border 1px solid var(--border-color);
+      border-radius 8px;
+      padding 16px 20px;
+      margin-bottom 16px;
+      display flex;
+      justify-content space-between;
+      align-items center;
+      box-shadow 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .machine-meta {
+      display flex;
+      align-items center;
+      gap 24px;
+      flex-wrap wrap;
+    }
+
+    .meta-item {
+      display flex;
+      align-items center;
+      gap 8px;
+      font-size 14px;
+    }
+
+    .meta-label {
+      font-weight 600;
+      color var(--text-muted);
+    }
+
+    .meta-input {
+      padding 4px 8px;
+      border 1px solid #cbd5e1;
+      border-radius 4px;
+      font-size 14px;
+      outline none;
+    }
+
+    .meta-inputfocus {
+      border-color var(--primary);
+    }
+
+     物料分類色彩卡片樣式 
+    .category-group {
+      background white;
+      border 1px solid var(--border-color);
+      border-radius 8px;
+      margin-bottom 20px;
+      overflow hidden;
+      box-shadow 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .cat-header {
+      padding 10px 16px;
+      font-weight 700;
+      font-size 15px;
+      display flex;
+      justify-content space-between;
+      align-items center;
+      border-bottom 1px solid var(--border-color);
+    }
+
+     各類別專屬配色 
+    .cat-cpu { background #e0f2fe; color #0369a1; border-left 6px solid #0284c7; }
+    .cat-gpu { background #ede9fe; color #5b21b6; border-left 6px solid #7c3aed; }
+    .cat-hpm { background #fef3c7; color #92400e; border-left 6px solid #d97706; }
+    .cat-m2  { background #ecfdf5; color #047857; border-left 6px solid #10b981; }
+    .cat-e1s { background #ccfbf1; color #0f766e; border-left 6px solid #14b8a6; }
+    .cat-scm { background #f3e8ff; color #6b21a8; border-left 6px solid #9333ea; }
+    .cat-mem { background #ffe4e6; color #be123c; border-left 6px solid #f43f5e; }
+    .cat-pdb { background #ffedd5; color #9a3412; border-left 6px solid #ea580c; }
+    .cat-sled{ background #f1f5f9; color #334155; border-left 6px solid #64748b; }
+    .cat-pdbc{ background #e2e8f0; color #1e293b; border-left 6px solid #475569; }
+    .cat-fan { background #f0fdf4; color #166534; border-left 6px solid #22c55e; }
+    .cat-mech{ background #fdf2f8; color #9d174d; border-left 6px solid #db2777; }
+
+     Excel 網格表格 
+    .barcode-table {
+      width 100%;
+      border-collapse collapse;
+      font-size 13px;
+    }
+
+    .barcode-table th {
+      background #f8fafc;
+      text-align left;
+      padding 8px 14px;
+      color #475569;
+      font-weight 600;
+      border-bottom 1px solid var(--border-color);
+    }
+
+    .barcode-table td {
+      padding 6px 12px;
+      border-bottom 1px solid #f1f5f9;
+      vertical-align middle;
+    }
+
+    .barcode-table trhover {
+      background-color #f8fafc;
+    }
+
+    .col-idx { width 40px; color var(--text-muted); text-align center; }
+    .col-name { width 420px; font-weight 600; color #1e293b; }
+    .col-input { }
+
+    .grid-input {
+      width 100%;
+      padding 7px 10px;
+      font-family JetBrains Mono, Consolas, Monaco, Courier New, monospace;
+      font-size 13px;
+      border 1px solid #cbd5e1;
+      border-radius 4px;
+      outline none;
+      transition all 0.15s ease;
+      background #ffffff;
+    }
+
+    .grid-inputfocus {
+      border-color var(--primary);
+      box-shadow 0 0 0 2px rgba(37, 99, 235, 0.2);
+      background #eff6ff;
+    }
+
+    .grid-input.has-val {
+      font-weight 500;
+      color #0f172a;
+    }
+
+     記憶體專用 4 欄並排 Grid 
+    .dimm-grid-container {
+      display grid;
+      grid-template-columns repeat(4, 1fr);
+      gap 8px;
+      padding 12px;
+    }
+
+    .dimm-cell {
+      display flex;
+      align-items center;
+      background #fff1f2;
+      border 1px solid #fecdd3;
+      border-radius 4px;
+      padding 4px 8px;
+      gap 6px;
+    }
+
+    .dimm-label {
+      font-size 11px;
+      font-weight 700;
+      color #be123c;
+      width 65px;
+      flex-shrink 0;
+    }
+
+    .dimm-cell input {
+      flex 1;
+      padding 5px 8px;
+      font-family monospace;
+      font-size 12px;
+      border 1px solid #fda4af;
+      border-radius 3px;
+      outline none;
+    }
+
+    .dimm-cell inputfocus {
+      border-color #e11d48;
+      box-shadow 0 0 0 2px rgba(225, 29, 72, 0.2);
+    }
+
+     比對分頁專用樣式 
+    .compare-container {
+      display grid;
+      grid-template-columns 420px 1fr;
+      gap 24px;
+    }
+
+    .compare-panel {
+      background white;
+      border 1px solid var(--border-color);
+      border-radius 8px;
+      padding 20px;
+      box-shadow 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .panel-title {
+      font-size 16px;
+      font-weight 700;
+      margin-bottom 14px;
+      display flex;
+      align-items center;
+      gap 8px;
+    }
+
+    .compare-select {
+      width 100%;
+      padding 8px 12px;
+      border 1px solid #cbd5e1;
+      border-radius 6px;
+      font-size 14px;
+      font-weight 600;
+      margin-bottom 16px;
+      outline none;
+    }
+
+    .compare-textarea {
+      width 100%;
+      height 280px;
+      border 1px solid #cbd5e1;
+      border-radius 6px;
+      padding 10px;
+      font-family monospace;
+      font-size 13px;
+      resize vertical;
+      outline none;
+      margin-bottom 14px;
+      line-height 1.5;
+    }
+
+    .compare-textareafocus {
+      border-color #7c3aed;
+      box-shadow 0 0 0 2px rgba(124, 58, 237, 0.2);
+    }
+
+    .compare-stats-card {
+      background #f8fafc;
+      border 1px solid #e2e8f0;
+      border-radius 6px;
+      padding 12px;
+      margin-bottom 16px;
+    }
+
+    .stat-row {
+      display flex;
+      justify-content space-between;
+      margin-bottom 6px;
+      font-size 13px;
+    }
+
+    .progress-bar-container {
+      height 8px;
+      background #e2e8f0;
+      border-radius 4px;
+      overflow hidden;
+      margin-top 8px;
+    }
+
+    .progress-bar-fill {
+      height 100%;
+      background var(--success);
+      width 0%;
+      transition width 0.3s ease;
+    }
+
+     比對結果清單顏色高亮 
+    .compare-result-list {
+      max-height 650px;
+      overflow-y auto;
+      border 1px solid var(--border-color);
+      border-radius 6px;
+    }
+
+    .comp-item {
+      padding 8px 14px;
+      border-bottom 1px solid #f1f5f9;
+      display flex;
+      align-items center;
+      justify-content space-between;
+      font-size 13px;
+    }
+
+    .comp-item.matched {
+      background-color #ecfdf5;
+      color #065f46;
+      border-left 4px solid var(--success);
+    }
+
+    .comp-item.missing {
+      background-color #fef2f2;
+      color #991b1b;
+      border-left 4px solid var(--danger);
+    }
+
+    .comp-item.unassigned {
+      background-color #fffbeb;
+      color #92400e;
+      border-left 4px solid var(--warning);
+    }
+
+    .badge-matched {
+      background #10b981;
+      color white;
+      font-size 11px;
+      padding 2px 8px;
+      border-radius 12px;
+      font-weight 600;
+    }
+
+    .badge-missing {
+      background #ef4444;
+      color white;
+      font-size 11px;
+      padding 2px 8px;
+      border-radius 12px;
+      font-weight 600;
+    }
+
+    .badge-unassigned {
+      background #f59e0b;
+      color white;
+      font-size 11px;
+      padding 2px 8px;
+      border-radius 12px;
+      font-weight 600;
+    }
+
+    .toast {
+      position fixed;
+      bottom 24px;
+      right 24px;
+      background #1e293b;
+      color white;
+      padding 10px 18px;
+      border-radius 6px;
+      box-shadow 0 4px 12px rgba(0,0,0,0.15);
+      font-size 13px;
+      z-index 100;
+      opacity 0;
+      pointer-events none;
+      transition opacity 0.2s ease;
+    }
+
+    .toast.show {
+      opacity 1;
+    }
+  style
+head
+body
+
+  !-- 頂部列 --
+  header
+    div class=header-title
+      h1C43AB Platform High Value Barcode 管理與驗證系統h1
+      span class=header-badgeLENOVO BOM VERIFICATIONspan
+    div
+    div class=header-actions
+      button class=btn btn-primary onclick=addNewMachine()➕ 新增機台分頁button
+      button class=btn btn-secondary onclick=exportFullJSON()💾 備份全數據 (JSON)button
+      button class=btn btn-outline style=colorwhite; border-color#64748b onclick=importFullJSON()📥 匯入復原button
+    div
+  header
+
+  !-- 機台分頁 Tab 列 --
+  div class=tabs-bar id=tabsBar
+    !-- JS 自動產生 Slot 標籤 --
+    button class=tab-btn compare-tab onclick=switchTab('compare')
+      🔍 批次比對中心
+    button
+  div
+
+  main
+    !-- 機台分頁主畫面 (動態切換) --
+    div id=machineViewsContainerdiv
+
+    !-- 比對中心專用分頁 --
+    div id=tab-compare class=tab-content
+      div class=compare-container
+        
+        !-- 左側：輸入比對條碼與機台選擇 --
+        div class=compare-panel
+          div class=panel-title🎯 選擇目標機台比對div
+          
+          label style=font-size 12px; font-weight 600; color var(--text-muted); margin-bottom 4px; display block;目標比對機台 (Slot ID  Owner)：label
+          select id=compareTargetSelect class=compare-select onchange=runComparison()
+            !-- JS 動態填入機器選項 --
+          select
+
+          label style=font-size 12px; font-weight 600; color var(--text-muted); margin-bottom 4px; display block;
+            貼上已掃描之物料 Barcode 清單 (支援一次貼上多行 Excel 條碼)：
+          label
+          textarea id=scannedBarcodeInput class=compare-textarea placeholder=在此處貼上從 Excel 複製的多個條碼，或直接使用掃描槍連續刷入條碼...&#10;800000555767&#10;800000555768&#10;SC17C06371 oninput=runComparison()textarea
+
+          div class=compare-stats-card
+            div class=stat-row
+              span🎯 機台應有條碼數：span
+              strong id=statTotalExpected0strong
+            div
+            div class=stat-row
+              span✅ 吻合匹配條碼數：span
+              strong id=statTotalMatched style=color var(--success);0strong
+            div
+            div class=stat-row
+              span⏳ 尚缺條碼項目：span
+              strong id=statTotalMissing style=color var(--danger);0strong
+            div
+            div class=stat-row
+              span⚠️ 異常多出  不吻合條碼：span
+              strong id=statTotalExtra style=color var(--warning);0strong
+            div
+            div class=progress-bar-container
+              div id=progressBarFill class=progress-bar-filldiv
+            div
+            div style=text-align right; font-size 11px; color var(--text-muted); margin-top 4px; id=statPercent0% 完成div
+          div
+
+          button class=btn btn-outline style=width 100%; justify-content center; onclick=copyMissingItems()
+            📋 複製尚缺物料清單至剪貼簿
+          button
+        div
+
+        !-- 右側：比對明細狀態清單 --
+        div class=compare-panel
+          div class=panel-title style=justify-content space-between;
+            span📋 比對即時物料狀態反饋span
+            div style=font-size 12px; font-weight normal; display flex; gap 8px;
+              span style=color#065f46● 吻合span
+              span style=color#991b1b● 缺失span
+              span style=color#92400e● 未知span
+            div
+          div
+          div class=compare-result-list id=compareResultList
+            !-- 比對結果動態注入 --
+          div
+        div
+
+      div
+    div
+  main
+
+  div id=toast class=toast訊息提示div
+
+  script
+     物料定義清單與分類 (支援 100% 完整 C43AB BOM 架構)
+    const MATERIAL_CATEGORIES = [
+      {
+        id cpu,
+        name CPU,
+        cssClass cat-cpu,
+        items [
+          { key CPU#0, label CPU#0 },
+          { key CPU#1, label CPU#1 },
+          { key CPU#2, label CPU#2 },
+          { key CPU#3, label CPU#3 }
+        ]
+      },
+      {
+        id gp_card,
+        name GP Card,
+        cssClass cat-gpu,
+        items [
+          { key GP Card, label GP Card }
+        ]
+      },
+      {
+        id hpm,
+        name HPM 主機板,
+        cssClass cat-hpm,
+        items [
+          { key HM11 C4XAB MB SKU A PV, rework 8 resistance #1, label HM11 C4XAB MB SKU A PV, rework 8 resistance #1 },
+          { key HM11 C4XAB MB SKU A PV, rework 8 resistance #2, label HM11 C4XAB MB SKU A PV, rework 8 resistance #2 }
+        ]
+      },
+      {
+        id m2_ssd,
+        name M.2 SSD,
+        cssClass cat-m2,
+        items [
+          { key M.2#1, label M.2#1 },
+          { key M.2#2, label M.2#2 },
+          { key M.2#3, label M.2#3 },
+          { key M.2#4, label M.2#4 }
+        ]
+      },
+      {
+        id e1s_ssd,
+        name E1.S SSD,
+        cssClass cat-e1s,
+        items [
+          { key E1.S#1, label E1.S#1 },
+          { key E1.S#2, label E1.S#2 },
+          { key E1.S#3, label E1.S#3 },
+          { key E1.S#4, label E1.S#4 },
+          { key E1.S#5, label E1.S#5 },
+          { key E1.S#6, label E1.S#6 },
+          { key E1.S#7, label E1.S#7 },
+          { key E1.S#8, label E1.S#8 }
+        ]
+      },
+      {
+        id dc_scm,
+        name DC-SCM,
+        cssClass cat-scm,
+        items [
+          { key DC-SCM#1, label DC-SCM#1 },
+          { key DC-SCM#2, label DC-SCM#2 }
+        ]
+      },
+      {
+        id memory,
+        name Memory (DIMM#1 ~ DIMM#64 共 64 條),
+        cssClass cat-mem,
+        isDimmGrid true,
+        items Array.from({ length 64 }, (_, i) = ({
+          key `DIMM#${i + 1}`,
+          label `DIMM#${i + 1}`
+        }))
+      },
+      {
+        id pdb,
+        name PDB 配電板,
+        cssClass cat-pdb,
+        items [
+          { key HM11 C4XAB H-PDBv2 (with I3C Hub Solution),M1319108-005, label HM11 C4XAB H-PDBv2 (with I3C Hub Solution),M1319108-005 }
+        ]
+      },
+      {
+        id sled_cable,
+        name SLED Cable 內部線材,
+        cssClass cat-sled,
+        items [
+          { key 4S8S Sled 12V Power Cable, M1336745-002, label 4S8S Sled 12V Power Cable, M1336745-002 },
+          { key Front E1.S Intrusion Switch Cable,RWHHW-Y378, M1324984-002, label Front E1.S Intrusion Switch Cable,RWHHW-Y378, M1324984-002 },
+          { key 4S8S Sled Rear Intrusion Switch Cable,RWHHW-Y061, M1324985-002, label 4S8S Sled Rear Intrusion Switch Cable,RWHHW-Y061, M1324985-002 },
+          { key 4S8S Sled CUP0 UPI2 Cable, M1336753-002, label 4S8S Sled CUP0 UPI2 Cable, M1336753-002 },
+          { key 4S8S Sled CUP0 UPI1 Cable, M1336752-002, label 4S8S Sled CUP0 UPI1 Cable, M1336752-002 },
+          { key 4S8S Sled CUP1 UPI0 Cable, M1336754-002, label 4S8S Sled CUP1 UPI0 Cable, M1336754-002 },
+          { key 4S8S Sled CUP1 UPI2 Cable, M1336755-002, label 4S8S Sled CUP1 UPI2 Cable, M1336755-002 },
+          { key 4S8S Sled#1 Sideband Cable,M1336748-002, label 4S8S Sled#1 Sideband Cable,M1336748-002 },
+          { key 4S8S Sled#2 Sideband Cable, M1336749-002, label 4S8S Sled#2 Sideband Cable, M1336749-002 }
+        ]
+      },
+      {
+        id pdb_cable,
+        name PDB Cable 配電線材,
+        cssClass cat-pdbc,
+        items [
+          { key 2S4S Busbar 48V Power Cable PV,COO Mexico,M1340388-001, label 2S4S Busbar 48V Power Cable PV,COO Mexico,M1340388-001 },
+          { key 4S8S Rear Sled#2 12V Power Cable,M1336746-002 _#2, label 4S8S Rear Sled#2 12V Power Cable,M1336746-002 _#2 },
+          { key 4S8S Rear Sled#1 12V Power Cable, M1336747-002_#1, label 4S8S Rear Sled#1 12V Power Cable, M1336747-002_#1 },
+          { key Rear Cover Intrusion Switch Cable, M1336760-002, label Rear Cover Intrusion Switch Cable, M1336760-002 },
+          { key 4S8S Rear Sled#1 Sideband Cable, M1336750-002, label 4S8S Rear Sled#1 Sideband Cable, M1336750-002 },
+          { key 4S8S Rear Sled#2 Sideband Cable,M1336751-002, label 4S8S Rear Sled#2 Sideband Cable,M1336751-002 },
+          { key 4S Rear CPU0 UPI1 Cable, M1336756-002, label 4S Rear CPU0 UPI1 Cable, M1336756-002 },
+          { key 4S Rear CPU0 UPI0 Cable, M1336757-002, label 4S Rear CPU0 UPI0 Cable, M1336757-002 },
+          { key 4S Rear CPU01 UPI2 Cable, M1336758-002, label 4S Rear CPU01 UPI2 Cable, M1336758-002 },
+          { key 4S Rear CPU10 UPI2 Cable, M1336759-002, label 4S Rear CPU10 UPI2 Cable, M1336759-002 },
+          { key 4S FAN#6 Extension Cable, M1336767-002, label 4S FAN#6 Extension Cable, M1336767-002 },
+          { key 4S FAN#5 Extension Cable, M1336766-002, label 4S FAN#5 Extension Cable, M1336766-002 },
+          { key 4S FAN#4 Extension Cable, M1336765-002, label 4S FAN#4 Extension Cable, M1336765-002 },
+          { key 4S FAN#3 Extension Cable, M1336764-002, label 4S FAN#3 Extension Cable, M1336764-002 },
+          { key 4S FAN#2 Extension Cable, M1336763-002, label 4S FAN#2 Extension Cable, M1336763-002 },
+          { key 4S FAN#1 Extension Cable, M1336762-002, label 4S FAN#1 Extension Cable, M1336762-002 }
+        ]
+      },
+      {
+        id fan_module,
+        name FAN 風扇模組,
+        cssClass cat-fan,
+        items [
+          { key C43AB 3OU Fan Row Cage_DV2 T1 Sample, M1336735-002, label C43AB 3OU Fan Row Cage_DV2 T1 Sample, M1336735-002 },
+          { key 4S Fan Module Cable, M1336761-002, label 4S Fan Module Cable, M1336761-002 },
+          { key C43ABC46AB_6056MM FAN_AVC_DV, M1336743-002, label C43ABC46AB_6056MM FAN_AVC_DV, M1336743-002 }
+        ]
+      },
+      {
+        id mechanics,
+        name 滑軌與機構 (Chassis & Rails),
+        cssClass cat-mech,
+        items [
+          { key 滑軌外滑軌_C43ABC46AB Ourter Chassis Sliding Rail Set_DVT, label 滑軌外滑軌_C43ABC46AB Ourter Chassis Sliding Rail Set_DVT },
+          { key 內滑軌_C46AB Sled Rail Set-Rework, label 內滑軌_C46AB Sled Rail Set-Rework },
+          { key Chassis_C43AB 3OU chassis_DVT, label Chassis_C43AB 3OU chassis_DVT }
+        ]
+      }
+    ];
+
+     初始化 C43AB 完整實際數據庫 (包含 Slot 1, 4, 9, 12, 25, 32AMI)
+    const initialMachines = [
+      {
+        id m_slot_1,
+        slotId 1,
+        owner Eileen,
+        note ,
+        barcodes {
+          CPU#0 800000555767, CPU#1 800000555768, CPU#2 800000555769, CPU#3 800000555770,
+          GP Card 800000548212,
+          HM11 C4XAB MB SKU A PV, rework 8 resistance #1 800000593148,
+          HM11 C4XAB MB SKU A PV, rework 8 resistance #2 800000593147,
+          M.2#1 800000453529, M.2#2 x, M.2#3 x, M.2#4 x,
+          E1.S#1 800000576277, E1.S#2 800000576278, E1.S#3 800000576279, E1.S#4 800000576280,
+          E1.S#5 800000576281, E1.S#6 800000576282, E1.S#7 800000576283, E1.S#8 800000576284,
+          DC-SCM#1 800000623350 (Caffrey), DC-SCM#2 800000628278 (Caffrey),
+           DIMM #1 ~ #64
+          DIMM#1 拆給12, DIMM#2 拆給12, DIMM#3 拆給12, DIMM#4 拆給12, DIMM#5 拆給12,
+          DIMM#6 拆給12, DIMM#7 拆給12, DIMM#8 拆給12, DIMM#9 拆給12, DIMM#10 拆給12,
+          DIMM#11 拆給12, DIMM#12 拆給12, DIMM#13 拆給12, DIMM#14 拆給12, DIMM#15 拆給12,
+          DIMM#16 拆給12, DIMM#17 拆給12, DIMM#18 拆給12, DIMM#19 拆給12, DIMM#20 拆給12,
+          DIMM#21 拆給12, DIMM#22 拆給12, DIMM#23 拆給12, DIMM#24 拆給12, DIMM#25 拆給12,
+          DIMM#26 拆給12, DIMM#27 拆給12, DIMM#28 拆給12, DIMM#29 拆給12, DIMM#30 拆給12,
+          DIMM#31 拆給12, DIMM#32 拆給12, DIMM#33 拆給12, DIMM#34 拆給12, DIMM#35 拆給12,
+          DIMM#36 拆給12, DIMM#37 拆給12, DIMM#38 拆給12, DIMM#39 拆給12, DIMM#40 拆給12,
+          DIMM#41 拆給12, DIMM#42 拆給12, DIMM#43 拆給12, DIMM#44 拆給12, DIMM#45 拆給12,
+          DIMM#46 拆給12, DIMM#47 拆給12, DIMM#48 拆給12, DIMM#49 拆給12, DIMM#50 拆給12,
+          DIMM#51 拆給12, DIMM#52 拆給12, DIMM#53 拆給12, DIMM#54 拆給12, DIMM#55 拆給12,
+          DIMM#56 拆給12, DIMM#57 拆給12, DIMM#58 拆給12, DIMM#59 拆給12, DIMM#60 拆給12,
+          DIMM#61 拆給12, DIMM#62 拆給12, DIMM#63 拆給12, DIMM#64 拆給12,
+          HM11 C4XAB H-PDBv2 (with I3C Hub Solution),M1319108-005 800000624328,
+          4S8S Sled 12V Power Cable, M1336745-002 SC17C06371,
+          Front E1.S Intrusion Switch Cable,RWHHW-Y378, M1324984-002 SC17C00008,
+          4S8S Sled Rear Intrusion Switch Cable,RWHHW-Y061, M1324985-002 SC17C00009,
+          4S8S Sled CUP0 UPI2 Cable, M1336753-002 SC17C06379,
+          4S8S Sled CUP0 UPI1 Cable, M1336752-002 SC17C06378,
+          4S8S Sled CUP1 UPI0 Cable, M1336754-002 SC17C06380,
+          4S8S Sled CUP1 UPI2 Cable, M1336755-002 SC17C06381,
+          4S8S Sled#1 Sideband Cable,M1336748-002 SC17C06374,
+          4S8S Sled#2 Sideband Cable, M1336749-002 SC17C06375,
+          2S4S Busbar 48V Power Cable PV,COO Mexico,M1340388-001 SC17C05876,
+          4S8S Rear Sled#2 12V Power Cable,M1336746-002 _#2 SC17C06372,
+          4S8S Rear Sled#1 12V Power Cable, M1336747-002_#1 SC17C06373,
+          Rear Cover Intrusion Switch Cable, M1336760-002 SC17C06393,
+          4S8S Rear Sled#1 Sideband Cable, M1336750-002 SC17C06376,
+          4S8S Rear Sled#2 Sideband Cable,M1336751-002 SC17C06377,
+          4S Rear CPU0 UPI1 Cable, M1336756-002 SC17C06382,
+          4S Rear CPU0 UPI0 Cable, M1336757-002 SC17C06383,
+          4S Rear CPU01 UPI2 Cable, M1336758-002 SC17C06384,
+          4S Rear CPU10 UPI2 Cable, M1336759-002 SC17C06385,
+          4S FAN#6 Extension Cable, M1336767-002 SC17C06423,
+          4S FAN#5 Extension Cable, M1336766-002 SC17C06422,
+          4S FAN#4 Extension Cable, M1336765-002 SC17C06421,
+          4S FAN#3 Extension Cable, M1336764-002 SC17C06420,
+          4S FAN#2 Extension Cable, M1336763-002 SC17C06419,
+          4S FAN#1 Extension Cable, M1336762-002 SC17C06418,
+          C43AB 3OU Fan Row Cage_DV2 T1 Sample, M1336735-002 SM17B94089,
+          4S Fan Module Cable, M1336761-002 SC17C06417,
+          C43ABC46AB_6056MM FAN_AVC_DV, M1336743-002 SF17C07108,
+          滑軌外滑軌_C43ABC46AB Ourter Chassis Sliding Rail Set_DVT SM17B88507 2,
+          內滑軌_C46AB Sled Rail Set-Rework SM17B88504_1 2,
+          Chassis_C43AB 3OU chassis_DVT SM17B94086-800000568445
+        }
+      },
+      {
+        id m_slot_4,
+        slotId 4,
+        owner Justin,
+        note ,
+        barcodes {
+          CPU#0 800000585405, CPU#1 800000585404, CPU#2 800000585403, CPU#3 800000585402,
+          GP Card 548242,
+          HM11 C4XAB MB SKU A PV, rework 8 resistance #1 ,
+          HM11 C4XAB MB SKU A PV, rework 8 resistance #2 ,
+          M.2#1 800000430349, M.2#2 800000430350, M.2#3 800000430351, M.2#4 800000430383,
+          E1.S#1 537586, E1.S#2 537587, E1.S#3 537588, E1.S#4 537590,
+          E1.S#5 537585, E1.S#6 537584, E1.S#7 537583, E1.S#8 537589,
+          DC-SCM#1 800000563226, DC-SCM#2 800000563227,
+          DIMM#1 468389, DIMM#2 468370, DIMM#3 468369, DIMM#4 468368, DIMM#5 468367,
+          DIMM#6 468366, DIMM#7 468365, DIMM#8 468364, DIMM#9 468371, DIMM#10 468372,
+          DIMM#11 468373, DIMM#12 468374, DIMM#13 468375, DIMM#14 468376, DIMM#15 468377,
+          DIMM#16 468378, DIMM#17 468392, DIMM#18 468391, DIMM#19 468393, DIMM#20 468394,
+          DIMM#21 468395, DIMM#22 468381, DIMM#23 468380, DIMM#24 468379, DIMM#25 468382,
+          DIMM#26 468383, DIMM#27 468384, DIMM#28 468385, DIMM#29 468386, DIMM#30 468387,
+          DIMM#31 468388, DIMM#32 468390, DIMM#33 468337, DIMM#34 468339, DIMM#35 468340,
+          DIMM#36 468341, DIMM#37 468342, DIMM#38 468343, DIMM#39 468345, DIMM#40 468346,
+          DIMM#41 468347, DIMM#42 468357, DIMM#43 468358, DIMM#44 468359, DIMM#45 468360,
+          DIMM#46 468361, DIMM#47 468362, DIMM#48 468363, DIMM#49 468332, DIMM#50 468333,
+          DIMM#51 468334, DIMM#52 468336, DIMM#53 468335, DIMM#54 468338, DIMM#55 468344,
+          DIMM#56 468348, DIMM#57 468356, DIMM#58 468355, DIMM#59 468351, DIMM#60 468349,
+          DIMM#61 468350, DIMM#62 468352, DIMM#63 468354, DIMM#64 468353,
+          HM11 C4XAB H-PDBv2 (with I3C Hub Solution),M1319108-005 ,
+          4S8S Sled 12V Power Cable, M1336745-002 M1336745002 2,
+          Front E1.S Intrusion Switch Cable,RWHHW-Y378, M1324984-002 M1324984-002 2,
+          4S8S Sled Rear Intrusion Switch Cable,RWHHW-Y061, M1324985-002 M1324985002P 2,
+          4S8S Sled CUP0 UPI2 Cable, M1336753-002 M1336753002P 2,
+          4S8S Sled CUP0 UPI1 Cable, M1336752-002 M1336752002P 2,
+          4S8S Sled CUP1 UPI0 Cable, M1336754-002 M1336754-002 2,
+          4S8S Sled CUP1 UPI2 Cable, M1336755-002 M1336755002P 2,
+          4S8S Sled#1 Sideband Cable,M1336748-002 M1336748002P 2,
+          4S8S Sled#2 Sideband Cable, M1336749-002 M1336749002P 2,
+          2S4S Busbar 48V Power Cable PV,COO Mexico,M1340388-001 ,
+          4S8S Rear Sled#2 12V Power Cable,M1336746-002 _#2 ,
+          4S8S Rear Sled#1 12V Power Cable, M1336747-002_#1 ,
+          Rear Cover Intrusion Switch Cable, M1336760-002 ,
+          4S8S Rear Sled#1 Sideband Cable, M1336750-002 ,
+          4S8S Rear Sled#2 Sideband Cable,M1336751-002 ,
+          4S Rear CPU0 UPI1 Cable, M1336756-002 ,
+          4S Rear CPU0 UPI0 Cable, M1336757-002 ,
+          4S Rear CPU01 UPI2 Cable, M1336758-002 ,
+          4S Rear CPU10 UPI2 Cable, M1336759-002 ,
+          4S FAN#6 Extension Cable, M1336767-002 ,
+          4S FAN#5 Extension Cable, M1336766-002 ,
+          4S FAN#4 Extension Cable, M1336765-002 ,
+          4S FAN#3 Extension Cable, M1336764-002 ,
+          4S FAN#2 Extension Cable, M1336763-002 ,
+          4S FAN#1 Extension Cable, M1336762-002 ,
+          C43AB 3OU Fan Row Cage_DV2 T1 Sample, M1336735-002 ,
+          4S Fan Module Cable, M1336761-002 ,
+          C43ABC46AB_6056MM FAN_AVC_DV, M1336743-002 ,
+          滑軌外滑軌_C43ABC46AB Ourter Chassis Sliding Rail Set_DVT ,
+          內滑軌_C46AB Sled Rail Set-Rework ,
+          Chassis_C43AB 3OU chassis_DVT 
+        }
+      },
+      {
+        id m_slot_9,
+        slotId 9,
+        owner Eileen,
+        note 預計出給BDC barcode + 微軟料號,
+        barcodes {
+          CPU#0 800000555778, CPU#1 800000555777, CPU#2 800000555776, CPU#3 800000555775,
+          GP Card 800000503802,
+          HM11 C4XAB MB SKU A PV, rework 8 resistance #1 80000593119,
+          HM11 C4XAB MB SKU A PV, rework 8 resistance #2 80000593118,
+          M.2#1 800000429838, M.2#2 800000429839, M.2#3 800000429836, M.2#4 800000429837,
+          E1.S#1 800000576290, E1.S#2 800000576291, E1.S#3 800000576295, E1.S#4 800000576296,
+          E1.S#5 800000576297, E1.S#6 800000576298, E1.S#7 800000576299, E1.S#8 800000576300,
+          DC-SCM#1 800000563231, DC-SCM#2 800000563233,
+          DIMM#1 800000591843, DIMM#2 800000591841, DIMM#3 800000591848, DIMM#4 800000591847, DIMM#5 800000591842,
+          DIMM#6 800000591854, DIMM#7 800000591850, DIMM#8 800000591804, DIMM#9 800000591844, DIMM#10 800000591845,
+          DIMM#11 800000591852, DIMM#12 800000591856, DIMM#13 800000591810, DIMM#14 800000591855, DIMM#15 800000591805,
+          DIMM#16 800000591806, DIMM#17 800000591801, DIMM#18 800000591807, DIMM#19 800000591799, DIMM#20 800000591840,
+          DIMM#21 800000591800, DIMM#22 800000591835, DIMM#23 800000591826, DIMM#24 800000591809, DIMM#25 800000591830,
+          DIMM#26 800000591827, DIMM#27 800000591802, DIMM#28 800000591808, DIMM#29 800000591828, DIMM#30 800000591803,
+          DIMM#31 800000591814, DIMM#32 800000591816, DIMM#33 800000591813, DIMM#34 800000591811, DIMM#35 800000591812,
+          DIMM#36 800000591815, DIMM#37 800000591851, DIMM#38 800000591849, DIMM#39 800000591794, DIMM#40 800000591793,
+          DIMM#41 800000591796, DIMM#42 800000591853, DIMM#43 800000591798, DIMM#44 800000591795, DIMM#45 800000591797,
+          DIMM#46 800000591846, DIMM#47 800000591818, DIMM#48 800000591836, DIMM#49 800000591837, DIMM#50 800000591832,
+          DIMM#51 800000591833, DIMM#52 800000591838, DIMM#53 800000591839, DIMM#54 800000591819, DIMM#55 800000591831,
+          DIMM#56 800000591829, DIMM#57 800000591817, DIMM#58 800000591821, DIMM#59 800000591822, DIMM#60 800000591824,
+          DIMM#61 800000591834, DIMM#62 800000591820, DIMM#63 800000591825, DIMM#64 800000591823,
+          HM11 C4XAB H-PDBv2 (with I3C Hub Solution),M1319108-005 800000613394,
+          4S8S Sled 12V Power Cable, M1336745-002 M1336745002 2,
+          Front E1.S Intrusion Switch Cable,RWHHW-Y378, M1324984-002 M1324984-002 2,
+          4S8S Sled Rear Intrusion Switch Cable,RWHHW-Y061, M1324985-002 M1324985002P 2,
+          4S8S Sled CUP0 UPI2 Cable, M1336753-002 M1336753002P 2,
+          4S8S Sled CUP0 UPI1 Cable, M1336752-002 M1336752002P 2,
+          4S8S Sled CUP1 UPI0 Cable, M1336754-002 M1336754-002 2,
+          4S8S Sled CUP1 UPI2 Cable, M1336755-002 M1336755002P 2,
+          4S8S Sled#1 Sideband Cable,M1336748-002 M1336748002P 2,
+          4S8S Sled#2 Sideband Cable, M1336749-002 M1336749002P 2,
+          2S4S Busbar 48V Power Cable PV,COO Mexico,M1340388-001 M1340388001P,
+          4S8S Rear Sled#2 12V Power Cable,M1336746-002 _#2 M1336746002,
+          4S8S Rear Sled#1 12V Power Cable, M1336747-002_#1 M1336747002,
+          Rear Cover Intrusion Switch Cable, M1336760-002 M1336760-002,
+          4S8S Rear Sled#1 Sideband Cable, M1336750-002 M1336750002P,
+          4S8S Rear Sled#2 Sideband Cable,M1336751-002 M1336751002P,
+          4S Rear CPU0 UPI1 Cable, M1336756-002 M1336756002P,
+          4S Rear CPU0 UPI0 Cable, M1336757-002 M1336757002P,
+          4S Rear CPU01 UPI2 Cable, M1336758-002 M1336758002P,
+          4S Rear CPU10 UPI2 Cable, M1336759-002 M1336759002P,
+          4S FAN#6 Extension Cable, M1336767-002 M1336767002P,
+          4S FAN#5 Extension Cable, M1336766-002 M1336766002P,
+          4S FAN#4 Extension Cable, M1336765-002 M1336765002P,
+          4S FAN#3 Extension Cable, M1336764-002 M1336764002P,
+          4S FAN#2 Extension Cable, M1336763-002 M1336763002P,
+          4S FAN#1 Extension Cable, M1336762-002 M1336762002P,
+          C43AB 3OU Fan Row Cage_DV2 T1 Sample, M1336735-002 M1336735-002 6,
+          4S Fan Module Cable, M1336761-002 M1336761-0026,
+          C43ABC46AB_6056MM FAN_AVC_DV, M1336743-002 M1336743-002 26,
+          滑軌外滑軌_C43ABC46AB Ourter Chassis Sliding Rail Set_DVT ,
+          內滑軌_C46AB Sled Rail Set-Rework ,
+          Chassis_C43AB 3OU chassis_DVT 
+        }
+      },
+      {
+        id m_slot_12,
+        slotId 12,
+        owner Eileen,
+        note 預計出給BDC barcode + 微軟料號,
+        barcodes {
+          CPU#0 800000585612, CPU#1 800000585610, CPU#2 800000585647, CPU#3 800000585611,
+          GP Card 800000548211,
+          HM11 C4XAB MB SKU A PV, rework 8 resistance #1 800000593145,
+          HM11 C4XAB MB SKU A PV, rework 8 resistance #2 800000593146,
+          M.2#1 800000430380, M.2#2 800000430381, M.2#3 x, M.2#4 x,
+          E1.S#1 800000630759, E1.S#2 800000630761, E1.S#3 800000630762, E1.S#4 800000630760,
+          E1.S#5 800000630763, E1.S#6 800000630764, E1.S#7 800000630765, E1.S#8 800000630766,
+          DC-SCM#1 800000563267, DC-SCM#2 800000563236,
+          DIMM#1 800000487528 From Slot1, DIMM#2 800000487535, DIMM#3 800000487536, DIMM#4 800000487537, DIMM#5 800000487538,
+          DIMM#6 800000487552, DIMM#7 800000487556, DIMM#8 800000487557, DIMM#9 800000487559, DIMM#10 800000487560,
+          DIMM#11 800000487565, DIMM#12 800000487566, DIMM#13 800000487567, DIMM#14 800000487568, DIMM#15 800000487569,
+          DIMM#16 800000487570, DIMM#17 800000487571, DIMM#18 800000487572, DIMM#19 800000487573, DIMM#20 800000487574,
+          DIMM#21 800000487575, DIMM#22 800000487576, DIMM#23 800000487577, DIMM#24 800000487578, DIMM#25 800000487618,
+          DIMM#26 800000487619, DIMM#27 800000487638, DIMM#28 800000487654, DIMM#29 800000487655, DIMM#30 800000487656,
+          DIMM#31 800000487657, DIMM#32 800000487658, DIMM#33 800000487659, DIMM#34 800000487660, DIMM#35 800000487661,
+          DIMM#36 800000487662, DIMM#37 800000487663, DIMM#38 800000487664, DIMM#39 800000487665, DIMM#40 800000487666,
+          DIMM#41 800000487667, DIMM#42 800000487668, DIMM#43 800000487669, DIMM#44 800000487670, DIMM#45 800000487671,
+          DIMM#46 800000487672, DIMM#47 800000487673, DIMM#48 800000487674, DIMM#49 800000487695, DIMM#50 800000487696,
+          DIMM#51 800000487697, DIMM#52 800000487893, DIMM#53 800000487894, DIMM#54 800000487895, DIMM#55 800000487896,
+          DIMM#56 800000487897, DIMM#57 800000487898, DIMM#58 800000487899, DIMM#59 800000487900, DIMM#60 800000487980,
+          DIMM#61 800000487981, DIMM#62 800000487982, DIMM#63 800000487995, DIMM#64 800000487996,
+          HM11 C4XAB H-PDBv2 (with I3C Hub Solution),M1319108-005 ,
+          4S8S Sled 12V Power Cable, M1336745-002 M1336745002 2,
+          Front E1.S Intrusion Switch Cable,RWHHW-Y378, M1324984-002 M1324984-002 2,
+          4S8S Sled Rear Intrusion Switch Cable,RWHHW-Y061, M1324985-002 M1324985002P 2,
+          4S8S Sled CUP0 UPI2 Cable, M1336753-002 M1336753002P 2,
+          4S8S Sled CUP0 UPI1 Cable, M1336752-002 M1336752002P 2,
+          4S8S Sled CUP1 UPI0 Cable, M1336754-002 M1336754-002 2,
+          4S8S Sled CUP1 UPI2 Cable, M1336755-002 M1336755002P 2,
+          4S8S Sled#1 Sideband Cable,M1336748-002 M1336748002P 2,
+          4S8S Sled#2 Sideband Cable, M1336749-002 M1336749002P 2,
+          2S4S Busbar 48V Power Cable PV,COO Mexico,M1340388-001 M1340388001P,
+          4S8S Rear Sled#2 12V Power Cable,M1336746-002 _#2 M1336746002,
+          4S8S Rear Sled#1 12V Power Cable, M1336747-002_#1 M1336747002,
+          Rear Cover Intrusion Switch Cable, M1336760-002 M1336760-002,
+          4S8S Rear Sled#1 Sideband Cable, M1336750-002 M1336750002P,
+          4S8S Rear Sled#2 Sideband Cable,M1336751-002 M1336751002P,
+          4S Rear CPU0 UPI1 Cable, M1336756-002 M1336756002P,
+          4S Rear CPU0 UPI0 Cable, M1336757-002 M1336757002P,
+          4S Rear CPU01 UPI2 Cable, M1336758-002 M1336758002P,
+          4S Rear CPU10 UPI2 Cable, M1336759-002 M1336759002P,
+          4S FAN#6 Extension Cable, M1336767-002 M1336767002P,
+          4S FAN#5 Extension Cable, M1336766-002 M1336766002P,
+          4S FAN#4 Extension Cable, M1336765-002 M1336765002P,
+          4S FAN#3 Extension Cable, M1336764-002 M1336764002P,
+          4S FAN#2 Extension Cable, M1336763-002 M1336763002P,
+          4S FAN#1 Extension Cable, M1336762-002 M1336762002P,
+          C43AB 3OU Fan Row Cage_DV2 T1 Sample, M1336735-002 M1336735-002 6,
+          4S Fan Module Cable, M1336761-002 M1336761-0026,
+          C43ABC46AB_6056MM FAN_AVC_DV, M1336743-002 M1336743-002 26,
+          滑軌外滑軌_C43ABC46AB Ourter Chassis Sliding Rail Set_DVT ,
+          內滑軌_C46AB Sled Rail Set-Rework ,
+          Chassis_C43AB 3OU chassis_DVT 
+        }
+      },
+      {
+        id m_slot_25,
+        slotId 25,
+        owner Justin,
+        note 預計出給BDC barcode + 微軟料號,
+        barcodes {
+          CPU#0 800000555622, CPU#1 800000555624, CPU#2 800000555621, CPU#3 800000555623,
+          GP Card 800000488242,
+          HM11 C4XAB MB SKU A PV, rework 8 resistance #1 800000593611,
+          HM11 C4XAB MB SKU A PV, rework 8 resistance #2 800000593612,
+          M.2#1 800000430350, M.2#2 800000453570, M.2#3 800000453569, M.2#4 800000453571,
+          E1.S#1 800000453571, E1.S#2 800000576313, E1.S#3 800000576320, E1.S#4 800000576314,
+          E1.S#5 800000576319, E1.S#6 800000576316, E1.S#7 800000576318, E1.S#8 800000576315,
+          DC-SCM#1 800000563229, DC-SCM#2 800000563227,
+          DIMM#1 800000488180, DIMM#2 800000488179, DIMM#3 800000488178, DIMM#4 800000488177, DIMM#5 800000488176,
+          DIMM#6 800000488175, DIMM#7 800000488174, DIMM#8 800000488164, DIMM#9 800000488162, DIMM#10 800000488173,
+          DIMM#11 800000488163, DIMM#12 800000488160, DIMM#13 800000488165, DIMM#14 800000488172, DIMM#15 800000488171,
+          DIMM#16 800000488163, DIMM#17 800000488166, DIMM#18 800000488167, DIMM#19 800000488168, DIMM#20 800000488169,
+          DIMM#21 800000488170, DIMM#22 800000488151, DIMM#23 800000488149, DIMM#24 800000488150, DIMM#25 800000488154,
+          DIMM#26 800000488152, DIMM#27 800000488153, DIMM#28 800000488155, DIMM#29 800000488156, DIMM#30 800000488157,
+          DIMM#31 800000488158, DIMM#32 800000488159, DIMM#33 800000488212, DIMM#34 800000488205, DIMM#35 800000488206,
+          DIMM#36 800000488208, DIMM#37 800000488209, DIMM#38 800000488210, DIMM#39 800000488207, DIMM#40 800000488211,
+          DIMM#41 800000488197, DIMM#42 800000488198, DIMM#43 800000488199, DIMM#44 800000488200, DIMM#45 800000488201,
+          DIMM#46 800000488202, DIMM#47 800000488203, DIMM#48 800000488204, DIMM#49 800000488196, DIMM#50 800000488195,
+          DIMM#51 800000488194, DIMM#52 800000488191, DIMM#53 800000488189, DIMM#54 800000488190, DIMM#55 800000488193,
+          DIMM#56 800000488192, DIMM#57 800000488188, DIMM#58 800000488186, DIMM#59 800000488184, DIMM#60 800000488183,
+          DIMM#61 800000488182, DIMM#62 800000488181, DIMM#63 800000488185, DIMM#64 800000488187,
+          HM11 C4XAB H-PDBv2 (with I3C Hub Solution),M1319108-005 800000613372,
+          4S8S Sled 12V Power Cable, M1336745-002 SC17C06371,
+          Front E1.S Intrusion Switch Cable,RWHHW-Y378, M1324984-002 SC17C00008,
+          4S8S Sled Rear Intrusion Switch Cable,RWHHW-Y061, M1324985-002 SC17C00009,
+          4S8S Sled CUP0 UPI2 Cable, M1336753-002 SC17C06379,
+          4S8S Sled CUP0 UPI1 Cable, M1336752-002 SC17C06378,
+          4S8S Sled CUP1 UPI0 Cable, M1336754-002 SC17C06380,
+          4S8S Sled CUP1 UPI2 Cable, M1336755-002 SC17C06381,
+          4S8S Sled#1 Sideband Cable,M1336748-002 SC17C06374,
+          4S8S Sled#2 Sideband Cable, M1336749-002 SC17C06375,
+          2S4S Busbar 48V Power Cable PV,COO Mexico,M1340388-001 M1340388001P,
+          4S8S Rear Sled#2 12V Power Cable,M1336746-002 _#2 M1336746002,
+          4S8S Rear Sled#1 12V Power Cable, M1336747-002_#1 M1336747002,
+          Rear Cover Intrusion Switch Cable, M1336760-002 M1336760-002,
+          4S8S Rear Sled#1 Sideband Cable, M1336750-002 M1336750002P,
+          4S8S Rear Sled#2 Sideband Cable,M1336751-002 M1336751002P,
+          4S Rear CPU0 UPI1 Cable, M1336756-002 M1336756002P,
+          4S Rear CPU0 UPI0 Cable, M1336757-002 M1336757002P,
+          4S Rear CPU01 UPI2 Cable, M1336758-002 M1336758002P,
+          4S Rear CPU10 UPI2 Cable, M1336759-002 M1336759002P,
+          4S FAN#6 Extension Cable, M1336767-002 M1336767002P,
+          4S FAN#5 Extension Cable, M1336766-002 M1336766002P,
+          4S FAN#4 Extension Cable, M1336765-002 M1336765002P,
+          4S FAN#3 Extension Cable, M1336764-002 M1336764002P,
+          4S FAN#2 Extension Cable, M1336763-002 M1336763002P,
+          4S FAN#1 Extension Cable, M1336762-002 M1336762002P,
+          C43AB 3OU Fan Row Cage_DV2 T1 Sample, M1336735-002 SM17B94089,
+          4S Fan Module Cable, M1336761-002 SC17C06417,
+          C43ABC46AB_6056MM FAN_AVC_DV, M1336743-002 SF17C07108,
+          滑軌外滑軌_C43ABC46AB Ourter Chassis Sliding Rail Set_DVT 800000566192,
+          內滑軌_C46AB Sled Rail Set-Rework 800000571245,
+          Chassis_C43AB 3OU chassis_DVT 800000568445
+        }
+      },
+      {
+        id m_slot_32ami,
+        slotId 32AMI,
+        owner Eileen,
+        note ,
+        barcodes {
+          CPU#0 , CPU#1 , CPU#2 , CPU#3 ,
+          GP Card ,
+          HM11 C4XAB MB SKU A PV, rework 8 resistance #1 ,
+          HM11 C4XAB MB SKU A PV, rework 8 resistance #2 ,
+          M.2#1 , M.2#2 , M.2#3 , M.2#4 ,
+          E1.S#1 , E1.S#2 , E1.S#3 , E1.S#4 ,
+          E1.S#5 , E1.S#6 , E1.S#7 , E1.S#8 ,
+          DC-SCM#1 , DC-SCM#2 ,
+          HM11 C4XAB H-PDBv2 (with I3C Hub Solution),M1319108-005 ,
+          4S8S Sled 12V Power Cable, M1336745-002 ,
+          Front E1.S Intrusion Switch Cable,RWHHW-Y378, M1324984-002 ,
+          4S8S Sled Rear Intrusion Switch Cable,RWHHW-Y061, M1324985-002 ,
+          4S8S Sled CUP0 UPI2 Cable, M1336753-002 ,
+          4S8S Sled CUP0 UPI1 Cable, M1336752-002 ,
+          4S8S Sled CUP1 UPI0 Cable, M1336754-002 ,
+          4S8S Sled CUP1 UPI2 Cable, M1336755-002 ,
+          4S8S Sled#1 Sideband Cable,M1336748-002 ,
+          4S8S Sled#2 Sideband Cable, M1336749-002 ,
+          2S4S Busbar 48V Power Cable PV,COO Mexico,M1340388-001 ,
+          4S8S Rear Sled#2 12V Power Cable,M1336746-002 _#2 ,
+          4S8S Rear Sled#1 12V Power Cable, M1336747-002_#1 ,
+          Rear Cover Intrusion Switch Cable, M1336760-002 ,
+          4S8S Rear Sled#1 Sideband Cable, M1336750-002 ,
+          4S8S Rear Sled#2 Sideband Cable,M1336751-002 ,
+          4S Rear CPU0 UPI1 Cable, M1336756-002 ,
+          4S Rear CPU0 UPI0 Cable, M1336757-002 ,
+          4S Rear CPU01 UPI2 Cable, M1336758-002 ,
+          4S Rear CPU10 UPI2 Cable, M1336759-002 ,
+          4S FAN#6 Extension Cable, M1336767-002 ,
+          4S FAN#5 Extension Cable, M1336766-002 ,
+          4S FAN#4 Extension Cable, M1336765-002 ,
+          4S FAN#3 Extension Cable, M1336764-002 ,
+          4S FAN#2 Extension Cable, M1336763-002 ,
+          4S FAN#1 Extension Cable, M1336762-002 ,
+          C43AB 3OU Fan Row Cage_DV2 T1 Sample, M1336735-002 ,
+          4S Fan Module Cable, M1336761-002 ,
+          C43ABC46AB_6056MM FAN_AVC_DV, M1336743-002 ,
+          滑軌外滑軌_C43ABC46AB Ourter Chassis Sliding Rail Set_DVT ,
+          內滑軌_C46AB Sled Rail Set-Rework ,
+          Chassis_C43AB 3OU chassis_DVT 
+        }
+      }
+    ];
+
+     本地持久化資料存取
+    let machines = [];
+    const STORAGE_KEY = C43AB_BARCODE_MANAGEMENT_DATA_V2;
+
+    function loadData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          machines = JSON.parse(saved);
+        } catch (e) {
+          machines = initialMachines;
+        }
+      } else {
+        machines = initialMachines;
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(machines));
+    }
+
+    let currentTab = m_slot_1;
+
+     渲染分頁標籤與機台檢視
+    function renderApp() {
+      const tabsBar = document.getElementById(tabsBar);
+      const viewsContainer = document.getElementById(machineViewsContainer);
+      const compareTargetSelect = document.getElementById(compareTargetSelect);
+
+       清空舊機台 Tab
+      const oldTabs = tabsBar.querySelectorAll(.machine-tab-btn);
+      oldTabs.forEach(t = t.remove());
+
+      viewsContainer.innerHTML = ;
+      compareTargetSelect.innerHTML = ;
+
+      machines.forEach((m, idx) = {
+         1. 生成 Tab 按鈕
+        const btn = document.createElement(button);
+        btn.className = `tab-btn machine-tab-btn ${currentTab === m.id  'active'  ''}`;
+        btn.onclick = () = switchTab(m.id);
+        btn.innerHTML = `
+          spanSlot ${m.slotId}span
+          span class=tab-owner-tag${m.owner  '未指派'}span
+        `;
+        tabsBar.insertBefore(btn, tabsBar.lastElementChild);  插在比對中心按鈕前
+
+         2. 生成 Compare 選項
+        const opt = document.createElement(option);
+        opt.value = m.id;
+        opt.textContent = `Slot ${m.slotId} (${m.owner  '無負責人'}) ${m.note  '- ' + m.note  ''}`;
+        compareTargetSelect.appendChild(opt);
+
+         3. 生成機台專屬資料檢視頁面
+        const view = document.createElement(div);
+        view.id = `tab-${m.id}`;
+        view.className = `tab-content ${currentTab === m.id  'active'  ''}`;
+
+         構造頂部機台 Meta 欄位
+        view.innerHTML = `
+          div class=machine-info-card
+            div class=machine-meta
+              div class=meta-item
+                span class=meta-labelSlot IDspan
+                input type=text class=meta-input style=width90px; font-weight700; value=${escapeHtml(m.slotId)} onchange=updateMachineMeta('${m.id}', 'slotId', this.value)
+              div
+              div class=meta-item
+                span class=meta-labelOwnerspan
+                input type=text class=meta-input style=width110px; value=${escapeHtml(m.owner)} onchange=updateMachineMeta('${m.id}', 'owner', this.value)
+              div
+              div class=meta-item
+                span class=meta-label備註說明span
+                input type=text class=meta-input style=width280px; placeholder=例如 預計出給BDC... value=${escapeHtml(m.note  '')} onchange=updateMachineMeta('${m.id}', 'note', this.value)
+              div
+            div
+            div style=displayflex; gap8px;
+              button class=btn btn-outline onclick=copyMachineBarcodesToClipboard('${m.id}')📋 複製本台條碼 (貼回Excel)button
+              button class=btn btn-outline onclick=duplicateMachine('${m.id}')📑 複製機台button
+              button class=btn btn-outline style=colorvar(--danger); border-color#fca5a5; onclick=deleteMachine('${m.id}')🗑️️ 刪除button
+            div
+          div
+        `;
+
+         構造分類物料清單
+        let allCategoryHtml = ;
+        MATERIAL_CATEGORIES.forEach(cat = {
+          allCategoryHtml += `
+            div class=category-group
+              div class=cat-header ${cat.cssClass}
+                span${cat.name}span
+                span style=font-size12px; font-weightnormal; opacity0.85;${cat.items.length} 項物料span
+              div
+          `;
+
+          if (cat.isDimmGrid) {
+             DIMM#1 ~ #64 採用 4 欄緊湊排版
+            allCategoryHtml += `div class=dimm-grid-container`;
+            cat.items.forEach(item = {
+              const val = m.barcodes[item.key]  ;
+              allCategoryHtml += `
+                div class=dimm-cell
+                  span class=dimm-label${item.label}span
+                  input type=text 
+                         class=grid-input dimm-input ${val  'has-val'  ''} 
+                         data-machine-id=${m.id} 
+                         data-item-key=${item.key} 
+                         value=${escapeHtml(val)} 
+                         placeholder=條碼  拆給...
+                         onchange=updateBarcode('${m.id}', '${item.key}', this.value)
+                         onpaste=handleBatchPaste(event, '${m.id}', '${item.key}')
+                         onkeydown=handleArrowNav(event)
+                div
+              `;
+            });
+            allCategoryHtml += `div`;
+          } else {
+             一般物料採用標準直向表格
+            allCategoryHtml += `
+              table class=barcode-table
+                thead
+                  tr
+                    th class=col-idx#th
+                    th class=col-name物料規格  項目名稱th
+                    th class=col-input物料條碼 (Barcode  料號) - 支援向下貼上th
+                  tr
+                thead
+                tbody
+            `;
+            cat.items.forEach((item, itemIdx) = {
+              const val = m.barcodes[item.key]  ;
+              allCategoryHtml += `
+                tr
+                  td class=col-idx${itemIdx + 1}td
+                  td class=col-name${item.label}td
+                  td class=col-input
+                    input type=text 
+                           class=grid-input normal-input ${val  'has-val'  ''} 
+                           data-machine-id=${m.id} 
+                           data-item-key=${item.key} 
+                           value=${escapeHtml(val)} 
+                           placeholder=點擊輸入或直接按 Ctrl+V 批次貼上...
+                           onchange=updateBarcode('${m.id}', '${item.key}', this.value)
+                           onpaste=handleBatchPaste(event, '${m.id}', '${item.key}')
+                           onkeydown=handleArrowNav(event)
+                  td
+                tr
+              `;
+            });
+            allCategoryHtml += `tbodytable`;
+          }
+
+          allCategoryHtml += `div`;
+        });
+
+        view.innerHTML += allCategoryHtml;
+        viewsContainer.appendChild(view);
+      });
+
+       同步比對 Tab 的狀態
+      const compareTabBtn = document.querySelector(.compare-tab);
+      const compareTabView = document.getElementById(tab-compare);
+      if (currentTab === compare) {
+        compareTabBtn.classList.add(active);
+        compareTabView.classList.add(active);
+        runComparison();
+      } else {
+        compareTabBtn.classList.remove(active);
+        compareTabView.classList.remove(active);
+      }
+    }
+
+     切換分頁
+    function switchTab(tabId) {
+      currentTab = tabId;
+      document.querySelectorAll(.tab-btn).forEach(b = b.classList.remove(active));
+      document.querySelectorAll(.tab-content).forEach(v = v.classList.remove(active));
+
+      if (tabId === compare) {
+        document.querySelector(.compare-tab).classList.add(active);
+        document.getElementById(tab-compare).classList.add(active);
+        runComparison();
+      } else {
+        const activeBtn = Array.from(document.querySelectorAll(.machine-tab-btn)).find(b = b.textContent.includes(machines.find(m = m.id === tabId).slotId));
+        if (activeBtn) activeBtn.classList.add(active);
+        const activeView = document.getElementById(`tab-${tabId}`);
+        if (activeView) activeView.classList.add(active);
+      }
+    }
+
+     更新機台 Meta 資訊
+    function updateMachineMeta(machineId, key, val) {
+      const machine = machines.find(m = m.id === machineId);
+      if (machine) {
+        machine[key] = val;
+        saveData();
+         更新標籤文字
+        const tabBtn = Array.from(document.querySelectorAll(.machine-tab-btn)).find((_, idx) = machines[idx].id === machineId);
+        if (tabBtn) {
+          tabBtn.innerHTML = `spanSlot ${machine.slotId}spanspan class=tab-owner-tag${machine.owner  '未指派'}span`;
+        }
+      }
+    }
+
+     更新單格條碼
+    function updateBarcode(machineId, itemKey, val) {
+      const machine = machines.find(m = m.id === machineId);
+      if (machine) {
+        machine.barcodes[itemKey] = val.trim();
+        saveData();
+      }
+    }
+
+     Excel 樣式連續向下貼上功能 (支援多行貼入)
+    function handleBatchPaste(event, machineId, startItemKey) {
+      const clipboardData = event.clipboardData  window.clipboardData;
+      const pastedData = clipboardData.getData('Text');
+      if (!pastedData) return;
+
+      const lines = pastedData.split(rnnr).map(line = line.trim()).filter(line = line.length  0);
+      
+       如果只有一行，允許原生 input 貼上
+      if (lines.length = 1) return;
+
+      event.preventDefault();  阻止預設貼入
+
+       取得目前機台分頁下所有的 input 格子 (依 DOM 順序排列)
+      const currentTabEl = document.getElementById(`tab-${machineId}`);
+      const inputs = Array.from(currentTabEl.querySelectorAll(.grid-input));
+      const startIndex = inputs.findIndex(inp = inp.getAttribute(data-item-key) === startItemKey);
+
+      if (startIndex === -1) return;
+
+      const machine = machines.find(m = m.id === machineId);
+      let count = 0;
+
+      for (let i = 0; i  lines.length; i++) {
+        const targetInput = inputs[startIndex + i];
+        if (!targetInput) break;
+
+        const val = lines[i];
+        targetInput.value = val;
+        targetInput.classList.add(has-val);
+        const key = targetInput.getAttribute(data-item-key);
+        machine.barcodes[key] = val;
+        count++;
+      }
+
+      saveData();
+      showToast(`已成功向下連續填入 ${count} 筆條碼！`);
+    }
+
+     鍵盤上下鍵導航
+    function handleArrowNav(e) {
+      if (e.key === ArrowDown  e.key === Enter) {
+        e.preventDefault();
+        const inputs = Array.from(e.target.closest(.tab-content).querySelectorAll(.grid-input));
+        const idx = inputs.indexOf(e.target);
+        if (idx !== -1 && idx  inputs.length - 1) inputs[idx + 1].focus();
+      } else if (e.key === ArrowUp) {
+        e.preventDefault();
+        const inputs = Array.from(e.target.closest(.tab-content).querySelectorAll(.grid-input));
+        const idx = inputs.indexOf(e.target);
+        if (idx  0) inputs[idx - 1].focus();
+      }
+    }
+
+     複製整台機台的條碼清單 (方便直接貼回 Excel)
+    function copyMachineBarcodesToClipboard(machineId) {
+      const machine = machines.find(m = m.id === machineId);
+      if (!machine) return;
+
+      let tsvRows = [];
+      MATERIAL_CATEGORIES.forEach(cat = {
+        cat.items.forEach(item = {
+          const val = machine.barcodes[item.key]  ;
+          tsvRows.push(`${item.label}t${val}`);
+        });
+      });
+
+      navigator.clipboard.writeText(tsvRows.join(n)).then(() = {
+        showToast(`Slot ${machine.slotId} 條碼清單已複製到剪貼簿 (可直接貼入 Excel)！`);
+      });
+    }
+
+     複製機台
+    function duplicateMachine(machineId) {
+      const source = machines.find(m = m.id === machineId);
+      if (!source) return;
+
+      const newSlot = prompt(`請輸入新機台的 Slot ID`, `${source.slotId}_Copy`);
+      if (!newSlot) return;
+
+      const newMachine = {
+        id `m_${Date.now()}`,
+        slotId newSlot,
+        owner source.owner,
+        note source.note,
+        barcodes { ...source.barcodes }
+      };
+
+      machines.push(newMachine);
+      saveData();
+      currentTab = newMachine.id;
+      renderApp();
+      showToast(`已成功複製出新機台 Slot ${newSlot}`);
+    }
+
+     新增空白機台
+    function addNewMachine() {
+      const slotId = prompt(請輸入新增機台的 Slot ID (例如 15, 36 等));
+      if (!slotId) return;
+
+      const owner = prompt(請輸入負責人 (Owner), Eileen)  ;
+      const newMachine = {
+        id `m_${Date.now()}`,
+        slotId slotId.trim(),
+        owner owner.trim(),
+        note ,
+        barcodes {}
+      };
+
+      machines.push(newMachine);
+      saveData();
+      currentTab = newMachine.id;
+      renderApp();
+      showToast(`已建立機台 Slot ${slotId}`);
+    }
+
+     刪除機台
+    function deleteMachine(machineId) {
+      const machine = machines.find(m = m.id === machineId);
+      if (!machine) return;
+
+      if (confirm(`確定要刪除 Slot ${machine.slotId} 的所有條碼資料嗎？`)) {
+        machines = machines.filter(m = m.id !== machineId);
+        saveData();
+        currentTab = machines.length  0  machines[0].id  compare;
+        renderApp();
+        showToast(已刪除該機台);
+      }
+    }
+
+     比對演算法核心
+    let currentMissingList = [];
+    function runComparison() {
+      const targetId = document.getElementById(compareTargetSelect).value;
+      const scannedRaw = document.getElementById(scannedBarcodeInput).value;
+      const targetMachine = machines.find(m = m.id === targetId);
+
+      if (!targetMachine) return;
+
+       解析掃描區所有條碼（去除非法空格、忽略空行）
+      const scannedLines = scannedRaw
+        .split(rnnr)
+        .map(s = s.trim())
+        .filter(s = s.length  0);
+
+       取得目標機台的所有預期條碼
+       條碼如果是 'x' 或包含 '拆給'，視為無須比對或特殊處理
+      let expectedMap = {};
+      let totalExpectedCount = 0;
+
+      MATERIAL_CATEGORIES.forEach(cat = {
+        cat.items.forEach(item = {
+          const code = (targetMachine.barcodes[item.key]  ).trim();
+          if (code && code !== 'x' && !code.includes(拆給)) {
+            expectedMap[item.key] = code;
+            totalExpectedCount++;
+          }
+        });
+      });
+
+       進行雙向驗證
+      const scannedSet = new Set(scannedLines);
+      let matchedCount = 0;
+      let missingItems = [];
+      let resultsHtml = ;
+
+       逐一檢查機台項目是否出現在掃描清單
+      MATERIAL_CATEGORIES.forEach(cat = {
+        cat.items.forEach(item = {
+          const expBarcode = (targetMachine.barcodes[item.key]  ).trim();
+          if (!expBarcode  expBarcode === 'x') return;  未配置條碼不計入缺失
+
+           判斷是否吻合 (相容前綴或完全相等)
+          const isMatched = scannedLines.some(scan = {
+             清理微軟料號或標註 (例如 'SC17C06371' vs 'SC17C06371')
+            return scan === expBarcode  expBarcode.includes(scan)  scan.includes(expBarcode);
+          });
+
+          if (isMatched) {
+            matchedCount++;
+            resultsHtml += `
+              div class=comp-item matched
+                div
+                  strong${item.label}strong
+                  span style=margin-left 12px; font-family monospace;${escapeHtml(expBarcode)}span
+                div
+                span class=badge-matched✓ 比對成功span
+              div
+            `;
+          } else {
+            missingItems.push({ name item.label, barcode expBarcode });
+            resultsHtml += `
+              div class=comp-item missing
+                div
+                  strong${item.label}strong
+                  span style=margin-left 12px; font-family monospace;${escapeHtml(expBarcode)}span
+                div
+                span class=badge-missing✕ 尚未掃到span
+              div
+            `;
+          }
+        });
+      });
+
+       檢查掃描清單中是否有不屬於該機台的條碼 (Extra  Unknown)
+      const expectedCodes = Object.values(expectedMap);
+      let extraCount = 0;
+      scannedLines.forEach(scan = {
+        const found = expectedCodes.some(exp = exp === scan  exp.includes(scan)  scan.includes(exp));
+        if (!found) {
+          extraCount++;
+          resultsHtml += `
+            div class=comp-item unassigned
+              div
+                strong[未知條碼  多出物料]strong
+                span style=margin-left 12px; font-family monospace;${escapeHtml(scan)}span
+              div
+              span class=badge-unassigned⚠️ 非本台條碼span
+            div
+          `;
+        }
+      });
+
+      currentMissingList = missingItems;
+
+       更新統計數字
+      document.getElementById(statTotalExpected).textContent = totalExpectedCount;
+      document.getElementById(statTotalMatched).textContent = matchedCount;
+      document.getElementById(statTotalMissing).textContent = missingItems.length;
+      document.getElementById(statTotalExtra).textContent = extraCount;
+
+      const pct = totalExpectedCount === 0  0  Math.round((matchedCount  totalExpectedCount)  100);
+      document.getElementById(progressBarFill).style.width = `${pct}%`;
+      document.getElementById(statPercent).textContent = `${pct}% (${matchedCount}${totalExpectedCount} 完成)`;
+
+      document.getElementById(compareResultList).innerHTML = resultsHtml  `
+        div style=padding 24px; text-align center; color var(--text-muted);
+          目前尚無比對資料，請在左側貼上掃描之 Barcode 清單
+        div
+      `;
+    }
+
+     複製缺失物料清單
+    function copyMissingItems() {
+      if (currentMissingList.length === 0) {
+        showToast(目前無缺失物料！);
+        return;
+      }
+      const text = currentMissingList.map(item = `${item.name}t${item.barcode}`).join(n);
+      navigator.clipboard.writeText(text).then(() = {
+        showToast(`已複製 ${currentMissingList.length} 項缺件資料至剪貼簿！`);
+      });
+    }
+
+     備份完整數據
+    function exportFullJSON() {
+      const dataStr = datatextjson;charset=utf-8, + encodeURIComponent(JSON.stringify(machines, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute(href, dataStr);
+      downloadAnchor.setAttribute(download, `C43AB_Barcodes_Backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast(已成功匯出備份 JSON 檔案！);
+    }
+
+     匯入數據復原
+    function importFullJSON() {
+      const input = document.createElement(input);
+      input.type = file;
+      input.accept = .json;
+      input.onchange = e = {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = event = {
+          try {
+            const imported = JSON.parse(event.target.result);
+            if (Array.isArray(imported)) {
+              machines = imported;
+              saveData();
+              currentTab = machines[0].id  compare;
+              renderApp();
+              showToast(備份資料匯入復原成功！);
+            } else {
+              alert(檔案格式不正確！);
+            }
+          } catch (err) {
+            alert(JSON 解析失敗，請確認檔案格式！);
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+     工具函式
+    function escapeHtml(text) {
+      if (!text) return ;
+      return text.toString()
+        .replace(&g, &amp;)
+        .replace(g, &lt;)
+        .replace(g, &gt;)
+        .replace(g, &quot;)
+        .replace('g, &#039;);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById(toast);
+      toast.textContent = msg;
+      toast.classList.add(show);
+      setTimeout(() = {
+        toast.classList.remove(show);
+      }, 2500);
+    }
+
+     啟動應用
+    loadData();
+    renderApp();
+  script
+body
+html
